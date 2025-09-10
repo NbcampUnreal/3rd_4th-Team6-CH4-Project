@@ -1,25 +1,69 @@
+# =====================================
+# Unreal Engine 5 Project
+# =====================================
 
+# Build output / Engine generated
 Binaries/
 Build/
 DerivedDataCache/
 Intermediate/
 Saved/
+*_BuiltData.uasset
 
+# =====================================
+# IDE / Editor
+# =====================================
+
+# Visual Studio
 *.sln
 *.suo
-*.xcodeproj
-*.xcworkspace
 *.VC.db
 *.VC.VC.opendb
+*.ipch
+.vs/
+.vsconfig
+*.sln.DotSettings.user
 
+# Rider / JetBrains
+.idea/
+Plugins/Developer/RiderLink/
+
+# VSCode
+.vscode/
+
+# Xcode (macOS/iOS)
+*.xcodeproj
+*.xcworkspace
+
+# =====================================
+# Temporary / Logs / OS
+# =====================================
 *.log
 *.tmp
-
+*.rej
 .DS_Store
 
-.vscode/
-.idea/
+# =====================================
+# Compiled / Executables / Libraries
+# =====================================
+*.slo
+*.lo
+*.o
+*.obj
+*.gch
+*.pch
+*.so
+*.dylib
+*.dll
+*.lai
+*.la
+*.a
+*.lib
+*.exe
+*.out
+*.app
+*.ipa
+Output/
+Engine/x64/
+Client/x64/
 
-# Visual Studio cache
-.vs/
-*.ipch
