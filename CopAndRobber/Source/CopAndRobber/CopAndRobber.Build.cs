@@ -18,6 +18,10 @@ public class CopAndRobber : ModuleRules
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
+		
+		PublicIncludePaths.AddRange(new string[] {
+    		"CopAndRobber"
+		});
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
