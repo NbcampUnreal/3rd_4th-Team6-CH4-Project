@@ -55,7 +55,7 @@ protected:
 	
 	void HandleAbilityPressedAction(const FInputActionValue& Value, ECRAbilityInputID Key);
 	void HandleAbilityReleaseAction(const FInputActionValue& Value, ECRAbilityInputID Key);
-protected:
+public:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	TObjectPtr<UCRPlayerInputConfig> PlayerInputConfig;
 

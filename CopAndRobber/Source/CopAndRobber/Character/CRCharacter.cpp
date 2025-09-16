@@ -51,7 +51,7 @@ void ACRCharacter::PossessedBy(AController* NewController)
 	
 	if (HasAuthority())
 	{
-		if (ACRCharacter* PS = Cast<ACRCharacter>(GetPlayerState()))
+		if (APlayerState* PS = GetPlayerState())
 		{
 			AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 		}

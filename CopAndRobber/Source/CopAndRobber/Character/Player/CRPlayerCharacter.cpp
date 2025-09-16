@@ -11,10 +11,12 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GAS/Ability/ECRAbilityInputID.h"
 #include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
 
 ACRPlayerCharacter::ACRPlayerCharacter()
 	:	TargetArmLength(800.f),
-		SocketOffset(FVector(0.f, 200.f,0.f))
+		SocketOffset(FVector(0.f, 200.f,0.f)),
+		TeamId(FGenericTeamId(1))
 {
 #pragma region CameraSetting
 	if (CameraBoom == nullptr)
@@ -46,18 +48,17 @@ ACRPlayerCharacter::ACRPlayerCharacter()
 void ACRPlayerCharacter::PawnClientRestart()
 {
 	Super::PawnClientRestart();
-	APlayerController* PC =  GetController<APlayerController>();
-	if (PC)
-	{
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = PC->GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-		if (Subsystem != nullptr && PlayerInputConfig->DefaultMappingContext)
-		{
-			Subsystem->RemoveMappingContext(PlayerInputConfig->DefaultMappingContext);
-			Subsystem->AddMappingContext(PlayerInputConfig->DefaultMappingContext, 0);
-		}
-	}
-	
-	
+	// 현재 CRPlayerController에서 InputConfig를 할당하도록 변경 
+	// APlayerController* PC =  GetController<APlayerController>();
+	// if (PC)
+	// {
+	// 	UEnhancedInputLocalPlayerSubsystem* Subsystem = PC->GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+	// 	if (Subsystem != nullptr && PlayerInputConfig != nullptr && PlayerInputConfig->DefaultMappingContext)
+	// 	{
+	// 		Subsystem->RemoveMappingContext(PlayerInputConfig->DefaultMappingContext);
+	// 		Subsystem->AddMappingContext(PlayerInputConfig->DefaultMappingContext, 0);
+	// 	}
+	// }
 }
 
 
@@ -80,13 +81,13 @@ void ACRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			{
 				ETC->BindAction(Pair.Value,ETriggerEvent::Triggered,this,&ACRPlayerCharacter::HandleAbilityPressedAction, Pair.Key);
 				ETC->BindAction(Pair.Value,ETriggerEvent::Completed,this,&ACRPlayerCharacter::HandleAbilityReleaseAction, Pair.Key);
-				
+
 			}
-			
+
 		}
-		
+
 	}
-	
+
 }
 
 void ACRPlayerCharacter::HandleMoveAction(const FInputActionValue& Value)
@@ -148,7 +149,9 @@ void ACRPlayerCharacter::HandleAbilityReleaseAction(const FInputActionValue& Val
 		}
 	}
 }
+#pragma endregion
 
+#pragma region TeamID
 void ACRPlayerCharacter::SetGenericTeamId(const FGenericTeamId& TeamID)
 {
 	TeamId = TeamID;
@@ -158,6 +161,8 @@ FGenericTeamId ACRPlayerCharacter::GetGenericTeamId() const
 {
 	return TeamId;
 }
+#pragma endregion
+
 void ACRPlayerCharacter::OnStun()
 {
 	Super::OnStun();
@@ -179,5 +184,4 @@ void ACRPlayerCharacter::RecoverStun()
 		PC->SetIgnoreMoveInput(false);
 	}
 }
-#pragma endregion
 

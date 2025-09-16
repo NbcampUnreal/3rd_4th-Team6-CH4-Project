@@ -9,10 +9,16 @@
 /**
  * 
  */
+class UCRPlayerInputConfig;
+
 UCLASS()
 class COPANDROBBER_API ACRPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+	UFUNCTION(Client, Reliable)
+	void Client_SetupInput(UCRPlayerInputConfig* InPlayerInputConfig);
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;

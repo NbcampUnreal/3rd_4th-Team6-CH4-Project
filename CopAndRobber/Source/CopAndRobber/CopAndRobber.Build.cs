@@ -13,8 +13,9 @@ public class CopAndRobber : ModuleRules
 			//Initialize
 			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput",
 			//GAS
-			"GameplayAbilities","GameplayTags","GameplayTasks"
-			
+			"GameplayAbilities","GameplayTags","GameplayTasks",
+			//Nav
+			"NavigationSystem"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule" });
