@@ -94,7 +94,6 @@ ACharacter* ACRAISpawner::SpawnAI(const FVector& Location, const FRotator& Rotat
 	if (!World || !AIClass) return nullptr;
 
 	FActorSpawnParameters SpawnParams;
-	// 충돌 처리 설정을 명확히 합니다.
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = GetInstigator();
@@ -103,7 +102,6 @@ ACharacter* ACRAISpawner::SpawnAI(const FVector& Location, const FRotator& Rotat
     
 	if (SpawnedChar)
 	{
-		// AI 컨트롤러를 스폰하여 AI 캐릭터에 빙의시킵니다.
 		AAIController* NewController = World->SpawnActor<AAIController>(AIControllerClass, Location, Rotation);
        
 		if (NewController)
