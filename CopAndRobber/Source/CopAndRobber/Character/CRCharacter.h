@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayEffectTypes.h"
+#include "GenericTeamAgentInterface.h"
 #include "CRCharacter.generated.h"
 
 class UCRAttributeSet;
@@ -18,6 +20,7 @@ class COPANDROBBER_API ACRCharacter : public ACharacter, public IAbilitySystemIn
 public:
 
 	ACRCharacter();
+	void ServerSide();
 
 	
 protected:
@@ -25,16 +28,16 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void PossessedBy(AController* NewController) override;
-	
-	
-
+	virtual void OnRep_PlayerState() override;
 
 
 #pragma  region  GAS
 protected:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	void ServerSide();
-	void ClientSide();
+	void OnSpeedChanged(const FOnAttributeChangeData& OnAttributeChangeData);
+	void OnStunTagChanged(FGameplayTag Tag, int32 NewCount);
+	void OnDeathTagChanged(FGameplayTag Tag, int32 NewCount);
+	virtual void BindingChangeDelegate();
 protected:
 	UPROPERTY(VisibleAnywhere,  Category= "GAS")
 	TObjectPtr<UCRAbilitySystemComponent> AbilitySystemComponent;
@@ -44,6 +47,27 @@ protected:
 
 #pragma endregion
 
+#pragma region Status
+protected:
+	bool IsDead() const;
+	virtual void OnStun();
+	virtual void RecoverStun();
+
+	virtual void OnDeath();
 	
+
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "AnimMontage")
+	TObjectPtr<UAnimMontage> StunMontage;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "AnimMontage")
+	TObjectPtr<UAnimMontage> DeathMontage;
+
+	
+	
+	
+#pragma endregion
+
 
 };

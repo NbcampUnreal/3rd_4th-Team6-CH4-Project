@@ -17,7 +17,7 @@ public class CopAndRobber : ModuleRules
 			
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule" });
 		
 		PublicIncludePaths.AddRange(new string[] {
     		"CopAndRobber"
