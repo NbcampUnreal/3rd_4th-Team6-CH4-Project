@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
+#include "GAS/Ability/ECRAbilityInputID.h"
 #include "CRAbilitySystemComponent.generated.h"
+
 
 /**
  * 
@@ -15,19 +17,24 @@ class COPANDROBBER_API UCRAbilitySystemComponent : public UAbilitySystemComponen
 	GENERATED_BODY()
 
 public:
+	
+	UCRAbilitySystemComponent();
 	void ApplyInitialEffects();
-	void ApplyFullStatEffect();
 	void GiveInitialAbilities();
+private:
+	void ApplyGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int level = 1);
+	
+	void UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData);
 
 private:
-	void ApplyAbilityEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int level =1);
-	bool CheckAuth();
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects" )
+	TArray<TSubclassOf<UGameplayEffect>> InitialGameplayEffects;
 
-private:
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects")
-	TSubclassOf<UGameplayEffect> FullStatEffect;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
-	TArray<TSubclassOf<UGameplayAbility>> Abilities;
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects" )
+	TMap<ECRAbilityInputID , TSubclassOf<UGameplayAbility>> Abilities;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects" )
+	TMap<ECRAbilityInputID , TSubclassOf<UGameplayAbility>> BasicAbilities;
 	
 };

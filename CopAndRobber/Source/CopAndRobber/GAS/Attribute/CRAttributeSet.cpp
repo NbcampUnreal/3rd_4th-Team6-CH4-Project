@@ -5,6 +5,14 @@
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 
+UCRAttributeSet::UCRAttributeSet()
+{
+	InitHealth(1.0f);
+	InitMaxHealth(3.0f);
+	InitSpeed(300.0f);
+	InitMaxSpeed(600.0f);
+}
+
 void UCRAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -22,6 +30,8 @@ void UCRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 	{
 		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
 	}
+    
+	
 	if (Attribute == GetSpeedAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxSpeed());
@@ -35,33 +45,33 @@ void UCRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	{
 		SetHealth(FMath::Clamp(GetHealth() , 0.0f, GetMaxHealth()));
 	}
+
+	
 	if (Data.EvaluatedData.Attribute == GetSpeedAttribute())
 	{
-		SetHealth(FMath::Clamp(GetSpeed() , 0.0f, GetMaxHealth()));
+		SetSpeed(FMath::Clamp(GetSpeed(), 0.0f, GetMaxSpeed()));
 	}
-
 }
 
 void UCRAttributeSet::OnRep_Health(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UCRAttributeSet , Health , OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCRAttributeSet, Health, OldValue);
 }
 
 void UCRAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UCRAttributeSet , MaxHealth , OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCRAttributeSet, MaxHealth, OldValue);
 }
 
 void UCRAttributeSet::OnRep_Speed(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UCRAttributeSet , Speed , OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCRAttributeSet, Speed, OldValue);
 }
 
 void UCRAttributeSet::OnRep_MaxSpeed(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UCRAttributeSet , MaxSpeed , OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCRAttributeSet, MaxSpeed, OldValue);
 }
-
 
 
 

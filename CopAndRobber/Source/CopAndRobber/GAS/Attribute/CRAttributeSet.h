@@ -19,6 +19,9 @@ UCLASS()
 class COPANDROBBER_API UCRAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
+
+public:
+	UCRAttributeSet();
 	
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
@@ -27,7 +30,7 @@ protected:
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	
-private:
+public:
 	UPROPERTY(ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UCRAttributeSet, Health)
@@ -36,7 +39,7 @@ private:
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UCRAttributeSet, MaxHealth)
 
-	UPROPERTY(ReplicatedUsing = OnRep_Health)
+	UPROPERTY(ReplicatedUsing = OnRep_Speed)
 	FGameplayAttributeData Speed;
 	ATTRIBUTE_ACCESSORS(UCRAttributeSet, Speed)
 
@@ -44,11 +47,11 @@ private:
 	FGameplayAttributeData MaxSpeed;
 	ATTRIBUTE_ACCESSORS(UCRAttributeSet, MaxSpeed)
 
+protected:
 	
 	UFUNCTION()
 	void OnRep_Health(const FGameplayAttributeData& OldValue);
 
-	
 	UFUNCTION()
 	void OnRep_MaxHealth(const FGameplayAttributeData& OldValue);
 
@@ -57,5 +60,6 @@ private:
 
 	UFUNCTION()
 	void OnRep_MaxSpeed(const FGameplayAttributeData& OldValue);
+
 	
 };

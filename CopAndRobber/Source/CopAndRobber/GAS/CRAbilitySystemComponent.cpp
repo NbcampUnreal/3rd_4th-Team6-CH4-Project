@@ -3,36 +3,54 @@
 
 #include "GAS/CRAbilitySystemComponent.h"
 
-void UCRAbilitySystemComponent::ApplyInitialEffects()
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayTagsStatic.h"
+#include "Attribute/CRAttributeSet.h"
+
+UCRAbilitySystemComponent::UCRAbilitySystemComponent()
 {
+	GetGameplayAttributeValueChangeDelegate(UCRAttributeSet::GetHealthAttribute())
+	.AddUObject(this, &UCRAbilitySystemComponent::UpdatedHealth);
 	
 }
 
-void UCRAbilitySystemComponent::ApplyFullStatEffect()
+void UCRAbilitySystemComponent::ApplyInitialEffects()
 {
-	if (IsValid(FullStatEffect))
-	{
-		ApplyAbilityEffect(FullStatEffect);
-	}
-}
-
-void UCRAbilitySystemComponent::GiveInitialAbilities()
-{
-	if (!CheckAuth())
+	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		return;
 	}
-	for (const TSubclassOf<UGameplayAbility>& ab : Abilities)
+	for (const TSubclassOf<UGameplayEffect>& EffectClass : InitialGameplayEffects)
 	{
-		GiveAbility(FGameplayAbilitySpec(ab, 1,1,nullptr));
+		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingSpec(EffectClass, 1, MakeEffectContext());
+		ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+	}
+
+}
+
+
+void UCRAbilitySystemComponent::GiveInitialAbilities()
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		return;
+	}
+	for (const TPair<ECRAbilityInputID, TSubclassOf<UGameplayAbility>>& AbilityPair : Abilities)
+	{
+		GiveAbility(FGameplayAbilitySpec(AbilityPair.Value,0,(int32)AbilityPair.Key,nullptr));
+	}
+
+	for (const TPair<ECRAbilityInputID, TSubclassOf<UGameplayAbility>>& AbilityPair : BasicAbilities)
+	{
+		GiveAbility(FGameplayAbilitySpec(AbilityPair.Value,1,(int32)AbilityPair.Key,nullptr));
 	}
 }
 
 
 
-void UCRAbilitySystemComponent::ApplyAbilityEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int level)
+void UCRAbilitySystemComponent::ApplyGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int level)
 {
-	if (!CheckAuth())
+	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		return; 
 	}
@@ -40,7 +58,28 @@ void UCRAbilitySystemComponent::ApplyAbilityEffect(TSubclassOf<UGameplayEffect> 
 	ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
 }
 
-bool UCRAbilitySystemComponent::CheckAuth()
+
+
+void UCRAbilitySystemComponent::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData)
 {
-	return (GetOwner()&& GetOwner()->HasAuthority());
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+		return;
+
+	if (OnAttributeChangeData.NewValue <= 0.f)
+	{
+		
+		if (!HasMatchingGameplayTag(UGameplayTagsStatic::GetDeadStatTag()))
+		{
+			AddLooseGameplayTag(UGameplayTagsStatic::GetDeadStatTag());
+			UE_LOG(LogTemp, Warning, TEXT("Dead tag added"));
+		}
+	}
+	else
+	{
+		if (HasMatchingGameplayTag(UGameplayTagsStatic::GetDeadStatTag()))
+		{
+			RemoveLooseGameplayTag(UGameplayTagsStatic::GetDeadStatTag());
+			UE_LOG(LogTemp, Warning, TEXT("Dead tag removed"));
+		}
+	}
 }
