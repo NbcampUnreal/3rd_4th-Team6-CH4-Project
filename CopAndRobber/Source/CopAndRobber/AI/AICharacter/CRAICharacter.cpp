@@ -5,8 +5,6 @@
 ACRAICharacter::ACRAICharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	AIControllerClass = ACRAIController::StaticClass();
-	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 void ACRAICharacter::BeginPlay()
 {

@@ -3,7 +3,8 @@
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Character.h"
 
-const FName ACRAIController::BBKey_IsPlayerDetected = TEXT("IsPlayerDetected");
+const FName ACRAIController::BBKey_IsPlayerDetected(TEXT("IsPlayerDetected"));
+const FName ACRAIController::BBKey_ActionIndex(TEXT("ActionIndex"));
 
 ACRAIController::ACRAIController()
 {
@@ -13,8 +14,15 @@ ACRAIController::ACRAIController()
 
 	PerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComp"));
 	SetPerceptionComponent(*PerceptionComp);
-
+	
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
+	SightConfig->SightRadius = 500.f;         
+	SightConfig->LoseSightRadius = 550.f;      
+	SightConfig->PeripheralVisionAngleDegrees = 90.f; 
+	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	SightConfig->SetMaxAge(7.f);
 
 	PerceptionComp->ConfigureSense(*SightConfig);
 	PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
@@ -27,7 +35,7 @@ void ACRAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (BehaviorTreeAsset)
+	if (HasAuthority() && BehaviorTreeAsset) 
 	{
 		RunBehaviorTree(BehaviorTreeAsset);
 	}
