@@ -4,8 +4,9 @@
 
 ACRGimmickBase::ACRGimmickBase()
 {
+	bReplicates = true;
+	SetReplicateMovement(false);
 	Position = FVector::ZeroVector;
-	IsActive = false;
 }
 
 void ACRGimmickBase::BeginPlay()
@@ -13,19 +14,5 @@ void ACRGimmickBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ACRGimmickBase::Activate()
-{
-	if (!IsActive)
-	{
-		IsActive = true;
-	}
-}
-
-void ACRGimmickBase::Deactivate()
-{
-	if (IsActive)
-	{
-		IsActive = false;
-	}
-}
-
+void ACRGimmickBase::Activate(AActor* Player){}
+void ACRGimmickBase::Deactivate(){}

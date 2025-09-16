@@ -19,10 +19,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick")
 	FVector Position;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick")
-	bool IsActive;
-	
+
 public:
-	virtual void Activate();
+	virtual void Activate(AActor* Player);
 	virtual void Deactivate();
 };
