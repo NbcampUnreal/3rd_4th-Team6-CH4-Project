@@ -2,13 +2,12 @@
 
 #include "CRExtraLifeItem.h"
 
-ACRExtraLifeItem::ACRExtraLifeItem()
+void ACRExtraLifeItem::Activate(AActor* Player)
 {
-	LifeAmount = 1;
-	Duration = 0.f;
-}
+	Super::Activate(Player);
 
-void ACRExtraLifeItem::Activate()
-{
-	Super::Activate();
+	if (!HasAuthority() || !Player) return;
+	
+	// GrantLife()
+	UE_LOG(LogTemp, Warning, TEXT("%s got +%d Life"), *Player->GetName(), LifeAmount);
 }

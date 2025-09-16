@@ -12,10 +12,10 @@ class COPANDROBBER_API ACRExtraLifeItem : public ACRItemBase
 	GENERATED_BODY()
 
 public:
-	ACRExtraLifeItem();
+	ACRExtraLifeItem() { Duration = 0.f; };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ExtraLife")
-	int32 LifeAmount;
+	int32 LifeAmount = 1;
 protected:
-	virtual void Activate() override;
+	virtual void Activate(AActor* Player) override;
 };
