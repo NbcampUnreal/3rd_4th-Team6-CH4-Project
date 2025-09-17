@@ -50,7 +50,7 @@ void ACRAIController::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    if (!GetPawn() || !BlackboardComp) return;
+    if (!bDrawDebug || !GetPawn() || !BlackboardComp || !SightConfig) return;
 
     DrawDebugSight();
 
