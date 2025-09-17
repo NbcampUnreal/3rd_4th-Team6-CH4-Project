@@ -7,6 +7,11 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "CRAIController.generated.h"
 
+class UAIPerceptionComponent;
+class UAISenseConfig_Sight;
+class UBlackboardComponent;
+class UBehaviorTree;
+
 UCLASS()
 class COPANDROBBER_API ACRAIController : public AAIController
 {
