@@ -19,6 +19,5 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	UAnimMontage* HitMontage;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	UAnimMontage* DeathMontage;
+
 };
