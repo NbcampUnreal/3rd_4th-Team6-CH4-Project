@@ -1,13 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
 #include "CRBTTask_RandomMove.generated.h"
-/*
- * 플레이어가 보이지 않으면 NavMesh 위 랜덤 좌표로 이동
- */
+
 UCLASS()
 class COPANDROBBER_API UCRBTTask_RandomMove : public UBTTaskNode
 {

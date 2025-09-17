@@ -19,12 +19,24 @@ class COPANDROBBER_API ACRAIController : public AAIController
 
 public:
 	ACRAIController();
-
+	
+	// 블랙보드 키
+	static const FName BBKey_bIsPlayerDetected;
+	static const FName BBKey_ActionIndex;
+	static const FName BBKey_TargetPlayer;
+	static const FName BBKey_bIsActionCooldown;
+	static const FName BBKey_TargetLocation;
+	static const FName BBKey_PlayerLocation;
+	
+	void StartActionCooldown(float CooldownTime);
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	void DrawDebugSight();
+	void UpdatePlayerLocation();
 
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="AI")
 	TObjectPtr<UAIPerceptionComponent> PerceptionComp;
 
@@ -37,16 +49,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
 
-	// 블랙보드 키
-	static const FName BBKey_IsPlayerDetected;
-	static const FName BBKey_ActionIndex;
-	//static const FName BBKey_
 	
-	// 시야 시각화 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI|Debug")
 	bool bDrawDebug;
 
-	// Perception 업데이트 
+
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	void UpdateRandomActionIndex();
+
 };
