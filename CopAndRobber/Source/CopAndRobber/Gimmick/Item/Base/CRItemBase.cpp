@@ -9,15 +9,16 @@ ACRItemBase::ACRItemBase()
 {
 	bReplicates = true;
 
-	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
+	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("ItemCollision"));
 	SetRootComponent(Collision);
 	Collision->InitSphereRadius(50.f);
 	Collision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Collision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	Collision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	Collision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	Collision->SetGenerateOverlapEvents(true);
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(Collision);
+	Mesh->SetCollisionProfileName(TEXT("NoCollision"));
 	
 	PrimaryActorTick.bCanEverTick = false;
 }
@@ -26,10 +27,8 @@ void ACRItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (Collision)
-	{
-		Collision->OnComponentBeginOverlap.AddDynamic(this, &ACRItemBase::OnOverlapBegin);
-	}
+	if (!Collision) return;
+	Collision->OnComponentBeginOverlap.AddDynamic(this, &ACRItemBase::OnOverlapBegin);
 }
 
 void ACRItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -54,13 +53,19 @@ void ACRItemBase::OnOverlapBegin(
 	if (!HasAuthority()) return;
 	if (bPicked || !OtherActor) return;
 	
-	if (!OtherActor->ActorHasTag("Player")) return;
+	if (APawn* Pawn = Cast<APawn>(OtherActor))
+	{
+		bPicked = true;
+		if (Collision)
+		{
+			Collision->SetGenerateOverlapEvents(false);
+			Collision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+		OnRep_Picked();
 
-	bPicked = true;
-	OnRep_Picked();
-
-	Activate(OtherActor);
-	Destroy();
+		Activate(OtherActor);
+		Destroy();
+	}
 }
 
 void ACRItemBase::ApplyPickedVisuals(bool bHide)
@@ -77,8 +82,5 @@ void ACRItemBase::ApplyPickedVisuals(bool bHide)
 	}
 }
 
-void ACRItemBase::Activate(AActor* Player)
-{
-	Super::Activate(Player);
-}
+void ACRItemBase::Activate(AActor* Player){}
 
