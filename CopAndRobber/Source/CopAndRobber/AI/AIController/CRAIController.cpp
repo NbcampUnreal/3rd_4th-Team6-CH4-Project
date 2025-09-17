@@ -25,7 +25,7 @@ ACRAIController::ACRAIController()
     SightConfig->DetectionByAffiliation.bDetectEnemies = true;
     SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
     SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-    SightConfig->SetMaxAge(7.f);
+    SightConfig->SetMaxAge(0);
 
     PerceptionComp->ConfigureSense(*SightConfig);
     PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
@@ -43,8 +43,20 @@ void ACRAIController::BeginPlay()
         RunBehaviorTree(BehaviorTreeAsset);
         BlackboardComp = GetBlackboardComponent();
         BlackboardComp->SetValueAsBool(BBKey_bIsActionCooldown, false);
+     
+            if (!SightConfig)
+            {
+                SightConfig = NewObject<UAISenseConfig_Sight>(this, TEXT("SightConfig"));
+                PerceptionComp->ConfigureSense(*SightConfig);
+                PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
+            }
+
+            RunBehaviorTree(BehaviorTreeAsset);
+            BlackboardComp = GetBlackboardComponent();
+            BlackboardComp->SetValueAsBool(BBKey_bIsActionCooldown, false);
     }
 }
+
 
 void ACRAIController::Tick(float DeltaTime)
 {
@@ -125,6 +137,7 @@ void ACRAIController::UpdateRandomActionIndex()
         BlackboardComp->SetValueAsInt(BBKey_ActionIndex, NewIndex);
     }
 }
+
 
 void ACRAIController::StartActionCooldown(float CooldownTime)
 {
