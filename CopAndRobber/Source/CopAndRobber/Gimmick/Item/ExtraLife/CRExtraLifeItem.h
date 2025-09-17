@@ -14,6 +14,9 @@ class COPANDROBBER_API ACRExtraLifeItem : public ACRItemBase
 public:
 	ACRExtraLifeItem() { Duration = 0.f; };
 
+	UPROPERTY(EditDefaultsOnly, Category="GAS|Effects")
+	TSubclassOf<class UGameplayEffect> GE_ExtraLife;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ExtraLife")
 	int32 LifeAmount = 1;
 protected:

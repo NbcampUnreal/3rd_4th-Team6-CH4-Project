@@ -2,12 +2,25 @@
 
 #include "CRExtraLifeItem.h"
 
+#include "AbilitySystemGlobals.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayEffect.h"
+#include "GameplayTagContainer.h"
+
 void ACRExtraLifeItem::Activate(AActor* Player)
 {
-	Super::Activate(Player);
+	if (!HasAuthority() || !Player || !GE_ExtraLife) return;
 
-	if (!HasAuthority() || !Player) return;
-	
-	// GrantLife()
+	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Player))
+	{
+		FGameplayEffectContextHandle Ctx = ASC->MakeEffectContext();
+		Ctx.AddSourceObject(this);
+
+		FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(GE_ExtraLife, 1.f, Ctx);
+		if (Spec.IsValid())
+		{
+			ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+		}
+	}
 	UE_LOG(LogTemp, Warning, TEXT("%s got +%d Life"), *Player->GetName(), LifeAmount);
 }
