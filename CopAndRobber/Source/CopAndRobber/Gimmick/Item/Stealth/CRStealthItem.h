@@ -13,6 +13,9 @@ class COPANDROBBER_API ACRStealthItem : public ACRItemBase
 
 public:
 	ACRStealthItem() { Duration = 10.f; };
+
+	UPROPERTY(EditDefaultsOnly, Category="GAS|Effects")
+	TSubclassOf<class UGameplayEffect> GE_Stealth;
 	
 protected:
 	virtual void Activate(AActor* Player) override;
