@@ -14,18 +14,17 @@ public:
 
 protected:
     virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+    virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+
+    bool bHasStartedMove;
 
 public:
-    //이동 완료 확인 범위
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
     float AcceptanceRadius = 5.f;
 
-    //최대 이동 반경
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
     float MaxMoveRadius = 1000.f;
 
-    //최소 이동 거리
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
     float MinMoveDistance = 500.f;
-    
 };

@@ -3,7 +3,6 @@
 #include "AI/AIController/CRAIController.h"
 #include "NavigationSystem.h"
 #include "Navigation/PathFollowingComponent.h"
-#include "TimerManager.h"
 
 UCRBTTask_RunFromPlayer::UCRBTTask_RunFromPlayer()
 {
@@ -18,9 +17,6 @@ EBTNodeResult::Type UCRBTTask_RunFromPlayer::ExecuteTask(UBehaviorTreeComponent&
 
     UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
     if (!BBComp->GetValueAsBool(ACRAIController::BBKey_bIsPlayerDetected))
-        return EBTNodeResult::Failed;
-
-    if (BBComp->GetValueAsBool(ACRAIController::BBKey_bIsActionCooldown))
         return EBTNodeResult::Failed;
 
     APawn* AIPawn = AICon->GetPawn();
@@ -42,13 +38,6 @@ EBTNodeResult::Type UCRBTTask_RunFromPlayer::ExecuteTask(UBehaviorTreeComponent&
         if (AICon->HasAuthority())
         {
             AICon->MoveToLocation(NavLoc.Location, -1.f, false, true, false, false, nullptr, true);
-
-            BBComp->SetValueAsBool(ACRAIController::BBKey_bIsActionCooldown, true);
-            FTimerHandle TimerHandle;
-            AICon->GetWorldTimerManager().SetTimer(TimerHandle, [BBComp]()
-            {
-                BBComp->SetValueAsBool(ACRAIController::BBKey_bIsActionCooldown, false);
-            }, 7.f, false);
         }
 
         return EBTNodeResult::InProgress;

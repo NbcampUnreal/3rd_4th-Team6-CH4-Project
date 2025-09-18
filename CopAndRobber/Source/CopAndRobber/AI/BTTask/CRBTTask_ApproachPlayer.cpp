@@ -5,24 +5,31 @@
 
 UCRBTTask_ApproachPlayer::UCRBTTask_ApproachPlayer()
 {
-    bNotifyTick = true;
+    bNotifyTick = true; 
 }
 
 EBTNodeResult::Type UCRBTTask_ApproachPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     ACRAIController* AICon = Cast<ACRAIController>(OwnerComp.GetAIOwner());
-    if (!AICon || !AICon->GetBlackboardComponent() || !AICon->HasAuthority())
-        return EBTNodeResult::Failed;
+    if (!AICon || !AICon->HasAuthority()) return EBTNodeResult::Failed;
 
     UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
+    if (!BBComp) return EBTNodeResult::Failed;
+
     FVector PlayerLocation = BBComp->GetValueAsVector(ACRAIController::BBKey_PlayerLocation);
-    if (PlayerLocation.IsNearlyZero())
-        return EBTNodeResult::Failed;
+    if (PlayerLocation.IsNearlyZero()) return EBTNodeResult::Failed;
 
     BBComp->SetValueAsVector(ACRAIController::BBKey_TargetLocation, PlayerLocation);
     AICon->MoveToLocation(PlayerLocation, -1.f, false, true, false, false, nullptr, true);
 
-    AICon->GetWorldTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &UCRBTTask_ApproachPlayer::OnApproachTimerFinished, &OwnerComp), ApproachDuration, false);
+   
+    if (OwnerComp.GetWorld())
+    {
+        OwnerComp.GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this, &OwnerComp]()
+        {
+            OnApproachTimerFinished(&OwnerComp);
+        }, ApproachDuration, false);
+    }
 
     return EBTNodeResult::InProgress;
 }
@@ -33,6 +40,8 @@ void UCRBTTask_ApproachPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
     if (!AICon) return;
 
     UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
+    if (!BBComp) return;
+
     FVector PlayerLocation = BBComp->GetValueAsVector(ACRAIController::BBKey_PlayerLocation);
     if (PlayerLocation.IsNearlyZero()) return;
 
@@ -50,19 +59,6 @@ void UCRBTTask_ApproachPlayer::OnApproachTimerFinished(UBehaviorTreeComponent* O
 
     ACRAIController* AICon = Cast<ACRAIController>(OwnerComp->GetAIOwner());
     if (!AICon) return;
-
-    UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
-    if (BBComp)
-    {
-        BBComp->SetValueAsBool(ACRAIController::BBKey_bIsActionCooldown, true);
-
-        FTimerHandle TimerHandleCooldown;
-        AICon->GetWorldTimerManager().SetTimer(TimerHandleCooldown, [BBComp]()
-        {
-            BBComp->SetValueAsBool(ACRAIController::BBKey_bIsActionCooldown, false);
-        }, 7.f, false);
-    }
-    AICon->ResetActionIndex();
-
+    AICon->ResetActionIndex(); 
     FinishLatentTask(*OwnerComp, EBTNodeResult::Succeeded);
 }

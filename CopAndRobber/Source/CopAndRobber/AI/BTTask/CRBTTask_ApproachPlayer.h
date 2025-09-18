@@ -18,7 +18,7 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
-	float ApproachDuration = 3.f;
+	float ApproachDuration = 5.f;
 
 	void OnApproachTimerFinished(UBehaviorTreeComponent* OwnerComp);
 

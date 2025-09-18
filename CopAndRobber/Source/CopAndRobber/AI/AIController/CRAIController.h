@@ -24,12 +24,10 @@ public:
 	static const FName BBKey_bIsPlayerDetected;
 	static const FName BBKey_ActionIndex;
 	static const FName BBKey_TargetPlayer;
-	static const FName BBKey_bIsActionCooldown;
 	static const FName BBKey_TargetLocation;
 	static const FName BBKey_PlayerLocation;
 	static const FName BBKey_IsHit;
 
-	void StartActionCooldown(float CooldownTime);
 	void ResetActionIndex();
 
 protected:

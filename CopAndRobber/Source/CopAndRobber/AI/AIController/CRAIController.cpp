@@ -1,12 +1,10 @@
 #include "CRAIController.h"
 #include "Character/Player/CRPlayerCharacter.h"
 #include "DrawDebugHelpers.h"
-#include "TimerManager.h"
 
 const FName ACRAIController::BBKey_bIsPlayerDetected(TEXT("bIsPlayerDetected"));
 const FName ACRAIController::BBKey_ActionIndex(TEXT("ActionIndex"));
 const FName ACRAIController::BBKey_TargetPlayer(TEXT("TargetPlayer"));
-const FName ACRAIController::BBKey_bIsActionCooldown(TEXT("bIsActionCooldown"));
 const FName ACRAIController::BBKey_TargetLocation(TEXT("TargetLocation"));
 const FName ACRAIController::BBKey_PlayerLocation(TEXT("PlayerLocation"));
 const FName ACRAIController::BBKey_IsHit(TEXT("bIsHit"));
@@ -21,12 +19,12 @@ ACRAIController::ACRAIController()
 
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
     SightConfig->SightRadius = 700.f;
-    SightConfig->LoseSightRadius = 700.f;
+    SightConfig->LoseSightRadius = 800.f;
     SightConfig->PeripheralVisionAngleDegrees = 90.f;
     SightConfig->DetectionByAffiliation.bDetectEnemies = true;
     SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
     SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-    SightConfig->SetMaxAge(0);
+    SightConfig->SetMaxAge(3.f);
 
     PerceptionComp->ConfigureSense(*SightConfig);
     PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
@@ -43,21 +41,15 @@ void ACRAIController::BeginPlay()
     {
         RunBehaviorTree(BehaviorTreeAsset);
         BlackboardComp = GetBlackboardComponent();
-        BlackboardComp->SetValueAsBool(BBKey_bIsActionCooldown, false);
-     
-            if (!SightConfig)
-            {
-                SightConfig = NewObject<UAISenseConfig_Sight>(this, TEXT("SightConfig"));
-                PerceptionComp->ConfigureSense(*SightConfig);
-                PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
-            }
+        if (!SightConfig)
+        {
+            SightConfig = NewObject<UAISenseConfig_Sight>(this, TEXT("SightConfig"));
+            PerceptionComp->ConfigureSense(*SightConfig);
+            PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
+        }
 
-            RunBehaviorTree(BehaviorTreeAsset);
-            BlackboardComp = GetBlackboardComponent();
-            BlackboardComp->SetValueAsBool(BBKey_bIsActionCooldown, false);
     }
 }
-
 
 void ACRAIController::Tick(float DeltaTime)
 {
@@ -66,7 +58,6 @@ void ACRAIController::Tick(float DeltaTime)
     if (!bDrawDebug || !GetPawn() || !BlackboardComp || !SightConfig) return;
 
     DrawDebugSight();
-
     UpdatePlayerLocation();
 }
 
@@ -130,32 +121,14 @@ void ACRAIController::UpdateRandomActionIndex()
     if (!BlackboardComp) return;
 
     bool bPlayerDetected = BlackboardComp->GetValueAsBool(BBKey_bIsPlayerDetected);
-    bool bIsCooldown = BlackboardComp->GetValueAsBool(BBKey_bIsActionCooldown);
 
-    if (bPlayerDetected && !bIsCooldown)
+    if (bPlayerDetected)
     {
         int32 NewIndex = FMath::RandRange(0, 2);
         BlackboardComp->SetValueAsInt(BBKey_ActionIndex, NewIndex);
     }
 }
 
-
-void ACRAIController::StartActionCooldown(float CooldownTime)
-{
-    if (!BlackboardComp) return;
-
-    BlackboardComp->SetValueAsBool(BBKey_bIsActionCooldown, true);
-
-    FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
-    {
-        if (BlackboardComp)
-        {
-            BlackboardComp->SetValueAsBool(BBKey_bIsActionCooldown, false);
-            UpdateRandomActionIndex();
-        }
-    }, CooldownTime, false);
-}
 void ACRAIController::ResetActionIndex()
 {
     if (BlackboardComp)
