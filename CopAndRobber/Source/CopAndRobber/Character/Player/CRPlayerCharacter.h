@@ -32,6 +32,8 @@ protected:
 
 	virtual void RecoverStun() override;
 
+	
+
 #pragma region Camera Setting
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -73,5 +75,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category= "Team")
 	FGenericTeamId TeamId;
 	
-#pragma endregion 
+#pragma endregion
+
+	
 };

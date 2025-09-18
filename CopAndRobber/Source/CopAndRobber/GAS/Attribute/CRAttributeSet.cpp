@@ -43,13 +43,21 @@ void UCRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	Super::PostGameplayEffectExecute(Data);
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		SetHealth(FMath::Clamp(GetHealth() , 0.0f, GetMaxHealth()));
+		float ClampedHealth = FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth());
+		if (ClampedHealth != GetHealth())
+		{
+			SetHealth(ClampedHealth);
+		}
 	}
 
 	
 	if (Data.EvaluatedData.Attribute == GetSpeedAttribute())
 	{
-		SetSpeed(FMath::Clamp(GetSpeed(), 0.0f, GetMaxSpeed()));
+		float ClampedSpeed = FMath::Clamp(GetSpeed(), 0.0f, GetMaxSpeed());
+		if (ClampedSpeed != GetSpeed())
+		{
+			SetSpeed(ClampedSpeed);
+		}
 	}
 }
 

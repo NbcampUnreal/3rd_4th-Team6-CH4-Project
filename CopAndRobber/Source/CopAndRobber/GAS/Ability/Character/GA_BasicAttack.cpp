@@ -9,6 +9,7 @@
 #include "Character/CRCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/GameplayTagsStatic.h"
+#include "GAS/Attribute/CRAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -23,7 +24,7 @@ void UGA_BasicAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                       const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
+	UE_LOG(LogTemp,Log,TEXT("Attack"));
 	if (!K2_CommitAbility())
 	{
 		return;
@@ -35,11 +36,6 @@ void UGA_BasicAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		PlayAttackMontageTask->OnCancelled.AddDynamic(this, &UGA_BasicAttack::K2_EndAbility);
 		PlayAttackMontageTask->OnCompleted.AddDynamic(this, &UGA_BasicAttack::K2_EndAbility);
 		PlayAttackMontageTask->OnInterrupted.AddDynamic(this, &UGA_BasicAttack::K2_EndAbility);
-
-		if (GetOwner())
-		{
-			GetOwner()->GetCharacterMovement()->DisableMovement();
-		}
 		
 		PlayAttackMontageTask->ReadyForActivation();
 	}
@@ -60,47 +56,41 @@ void UGA_BasicAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 void UGA_BasicAttack::CheckTargetHit(FGameplayEventData Data)
 {
-	if (!K2_HasAuthority())
-	{
-		return;
-	}
-	int HitCount = UAbilitySystemBlueprintLibrary::GetDataCountFromTargetData(Data.TargetData);
+   
+    if (!K2_HasAuthority())
+    {
+        return;
+    }
 
+    int HitCount = UAbilitySystemBlueprintLibrary::GetDataCountFromTargetData(Data.TargetData);
+    
+    IGenericTeamAgentInterface* GTI = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
+    if (GTI)
+    {
+       for (int i=0; i<HitCount; i++)
+       {
+          FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(Data.TargetData, i);
+          
+          if (HitResult.GetActor())
+          {
 
-	IGenericTeamAgentInterface* GTI = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
-	if (GTI)
-	{
-		for (int i=0; i<HitCount; i++)
-		{
-			FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(Data.TargetData, i);
+             if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Hostile)
+             {
+                FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(BasicAttackEffect, 1);
+                FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
+                EffectSpecHandle.Data->SetContext(EffectContext);
+                ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitResult.GetActor()));
+             }
+             else if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Neutral)
+             {
+                FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(StunEffect, 1);
+                FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
+                EffectSpecHandle.Data->SetContext(EffectContext);
 
-			
-			if (HitResult.GetActor())
-			{
-				if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Hostile) //적일경우 eam
-				{
-					FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
-					FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(BasicAttackEffect, 1);
-					EffectSpecHandle.Data->SetContext(EffectContext);
-					
-					ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, 
-												   EffectSpecHandle, UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitResult.GetActor()));
-					UE_LOG(LogTemp, Warning, TEXT("Attack : %s "), *HitResult.GetActor()->GetName());
-				}
-				if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Neutral) //ai 
-				{
-					FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
-					FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(StunEffect, 1);
-					EffectSpecHandle.Data->SetContext(EffectContext);
-
-					ApplyGameplayEffectSpecToOwner( GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo,EffectSpecHandle); 
-					UE_LOG(LogTemp, Warning, TEXT("Stun : %s "), *GetAvatarActorFromActorInfo()->GetName());
-				}
-				
-				
-				break;
-			}
-			
-		}
-	}
+                ApplyGameplayEffectSpecToOwner( GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo,EffectSpecHandle); 
+             }
+             break;
+          }
+       }
+    }
 }
