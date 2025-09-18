@@ -5,7 +5,6 @@
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
-#include "GameplayTagContainer.h"
 
 void ACRExtraLifeItem::Activate(AActor* Player)
 {
