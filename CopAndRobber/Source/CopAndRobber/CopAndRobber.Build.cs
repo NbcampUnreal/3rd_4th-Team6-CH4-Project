@@ -15,7 +15,7 @@ public class CopAndRobber : ModuleRules
 			//GAS
 			"GameplayAbilities","GameplayTags","GameplayTasks",
 			//Nav
-			"NavigationSystem"
+			"NavigationSystem",
 			//UI
 			"UMG", "Slate", "SlateCore"
 		});
