@@ -31,6 +31,11 @@ void UGA_BasicAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 	if (HasAuthorityOrPredictionKey(ActorInfo,&ActivationInfo)) // client prediction 기능 
 	{
+		ACharacter* AvatarChar = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+		if (GetOwner()!=nullptr)
+		{
+			GetOwner()->GetCharacterMovement()->DisableMovement();
+		}
 		UAbilityTask_PlayMontageAndWait* PlayAttackMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackMontage);
 		PlayAttackMontageTask->OnBlendOut.AddDynamic(this, &UGA_BasicAttack::K2_EndAbility);
 		PlayAttackMontageTask->OnCancelled.AddDynamic(this, &UGA_BasicAttack::K2_EndAbility);
@@ -51,7 +56,10 @@ void UGA_BasicAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-	GetOwner()->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	if (GetOwner()!=nullptr)
+	{
+		GetOwner()->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
 }
 
 void UGA_BasicAttack::CheckTargetHit(FGameplayEventData Data)

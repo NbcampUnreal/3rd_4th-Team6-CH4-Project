@@ -31,7 +31,7 @@ void UGAP_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 	Character->GetWorldTimerManager().SetTimer(DeathTimerHandle, [Character]()
 		{
-			Character->SetActorEnableCollision(false);
+			Character->SetActorHiddenInGame(true);
 		}, DeathTime, false);
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);

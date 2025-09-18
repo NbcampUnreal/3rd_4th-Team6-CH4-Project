@@ -19,8 +19,7 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 protected:
 	
-	UPROPERTY(EditDefaultsOnly, Category = "AnimMontage")
-	TObjectPtr<UAnimMontage> DeathMontage;
+	
 
 	UPROPERTY(EditDefaultsOnly, Category = "Time")
 	float DeathTime;
