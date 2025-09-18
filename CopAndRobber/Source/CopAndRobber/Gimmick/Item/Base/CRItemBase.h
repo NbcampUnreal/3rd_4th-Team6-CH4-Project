@@ -7,6 +7,7 @@
 #include "CRItemBase.generated.h"
 
 class USphereComponent;
+class UStaticMeshComponent;
 
 UCLASS()
 class COPANDROBBER_API ACRItemBase : public ACRGimmickBase
@@ -22,7 +23,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
 	float Duration = 0.f;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Item")
 	USphereComponent* Collision = nullptr;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Item")
 	UStaticMeshComponent* Mesh = nullptr;
