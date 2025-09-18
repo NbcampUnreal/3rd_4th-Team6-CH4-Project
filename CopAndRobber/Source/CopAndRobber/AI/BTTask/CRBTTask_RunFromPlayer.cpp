@@ -74,6 +74,7 @@ void UCRBTTask_RunFromPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
         {
             BBComp->SetValueAsVector(ACRAIController::BBKey_TargetLocation, FVector::ZeroVector);
         }
+        AICon->ResetActionIndex();
 
         FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
     }

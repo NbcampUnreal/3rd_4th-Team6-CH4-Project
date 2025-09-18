@@ -27,9 +27,11 @@ public:
 	static const FName BBKey_bIsActionCooldown;
 	static const FName BBKey_TargetLocation;
 	static const FName BBKey_PlayerLocation;
-	
+	static const FName BBKey_IsHit;
+
 	void StartActionCooldown(float CooldownTime);
-	
+	void ResetActionIndex();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;

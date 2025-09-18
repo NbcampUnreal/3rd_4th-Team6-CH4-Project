@@ -6,7 +6,6 @@
 UCRBTTask_ApproachPlayer::UCRBTTask_ApproachPlayer()
 {
     bNotifyTick = true;
-    ApproachDuration = 3.f;
 }
 
 EBTNodeResult::Type UCRBTTask_ApproachPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -63,6 +62,7 @@ void UCRBTTask_ApproachPlayer::OnApproachTimerFinished(UBehaviorTreeComponent* O
             BBComp->SetValueAsBool(ACRAIController::BBKey_bIsActionCooldown, false);
         }, 7.f, false);
     }
+    AICon->ResetActionIndex();
 
     FinishLatentTask(*OwnerComp, EBTNodeResult::Succeeded);
 }

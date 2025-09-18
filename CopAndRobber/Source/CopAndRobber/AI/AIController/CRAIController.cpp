@@ -9,6 +9,7 @@ const FName ACRAIController::BBKey_TargetPlayer(TEXT("TargetPlayer"));
 const FName ACRAIController::BBKey_bIsActionCooldown(TEXT("bIsActionCooldown"));
 const FName ACRAIController::BBKey_TargetLocation(TEXT("TargetLocation"));
 const FName ACRAIController::BBKey_PlayerLocation(TEXT("PlayerLocation"));
+const FName ACRAIController::BBKey_IsHit(TEXT("bIsHit"));
 
 ACRAIController::ACRAIController()
 {
@@ -154,4 +155,11 @@ void ACRAIController::StartActionCooldown(float CooldownTime)
             UpdateRandomActionIndex();
         }
     }, CooldownTime, false);
+}
+void ACRAIController::ResetActionIndex()
+{
+    if (BlackboardComp)
+    {
+        BlackboardComp->SetValueAsInt(BBKey_ActionIndex, -1);
+    }
 }
