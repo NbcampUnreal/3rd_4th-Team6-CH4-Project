@@ -1,4 +1,4 @@
-//CopAndRobber.Build.cs
+﻿//CopAndRobber.Build.cs
 
 using UnrealBuildTool;
 
@@ -16,6 +16,8 @@ public class CopAndRobber : ModuleRules
 			"GameplayAbilities","GameplayTags","GameplayTasks",
 			//Nav
 			"NavigationSystem"
+			//UI
+			"UMG", "Slate", "SlateCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
