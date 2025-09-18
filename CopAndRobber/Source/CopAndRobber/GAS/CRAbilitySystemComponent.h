@@ -21,11 +21,10 @@ public:
 	UCRAbilitySystemComponent();
 	void ApplyInitialEffects();
 	void GiveInitialAbilities();
-	virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
-private:
 	void ApplyGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int level = 1);
+
 	
-	void UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData);
+
 
 private:
 	
@@ -37,7 +36,5 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects" )
 	TMap<ECRAbilityInputID , TSubclassOf<UGameplayAbility>> BasicAbilities;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Dead Effects")
-	TSubclassOf<UGameplayEffect> DeadEffect;
+	
 };

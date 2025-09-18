@@ -12,6 +12,8 @@
 #include "GAS/Ability/ECRAbilityInputID.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "Character/Animation/CRAnimInstance.h"
+#include "GameMode/CRPlayerState.h"
 
 ACRPlayerCharacter::ACRPlayerCharacter()
 	:	TargetArmLength(800.f),
@@ -48,17 +50,67 @@ ACRPlayerCharacter::ACRPlayerCharacter()
 void ACRPlayerCharacter::PawnClientRestart()
 {
 	Super::PawnClientRestart();
-	// «ˆ¿Á CRPlayerControllerø°º≠ InputConfig∏¶ «“¥Á«œµµ∑œ ∫Ø∞Ê 
-	// APlayerController* PC =  GetController<APlayerController>();
-	// if (PC)
-	// {
-	// 	UEnhancedInputLocalPlayerSubsystem* Subsystem = PC->GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-	// 	if (Subsystem != nullptr && PlayerInputConfig != nullptr && PlayerInputConfig->DefaultMappingContext)
-	// 	{
-	// 		Subsystem->RemoveMappingContext(PlayerInputConfig->DefaultMappingContext);
-	// 		Subsystem->AddMappingContext(PlayerInputConfig->DefaultMappingContext, 0);
-	// 	}
-	// }
+
+	APlayerController* PC =  GetController<APlayerController>();
+	if (PC)
+	{
+		UEnhancedInputLocalPlayerSubsystem* Subsystem = PC->GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+		if (Subsystem != nullptr && PlayerInputConfig != nullptr && PlayerInputConfig->DefaultMappingContext)
+		{
+			Subsystem->RemoveMappingContext(PlayerInputConfig->DefaultMappingContext);
+			Subsystem->AddMappingContext(PlayerInputConfig->DefaultMappingContext, 0);
+		}
+	}
+}
+
+void ACRPlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (HasAuthority())
+	{
+		if (ACRPlayerState* PS = GetPlayerState<ACRPlayerState>())
+		{
+			TeamId = PS->GetGenericTeamId();
+			AbilitySystemComponent = Cast<UCRAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+			if (AbilitySystemComponent != nullptr)
+			{
+				AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+				BindingChangeDelegate();
+				ServerSideInit();
+
+				if (UCRAnimInstance* AnimInstance = Cast<UCRAnimInstance>(GetMesh()->GetAnimInstance()))
+				{
+					AnimInstance->InitializeWithAbilitySystem(AbilitySystemComponent);
+				}
+			}
+		}
+	}
+	
+}
+
+void ACRPlayerCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	
+	if (ACRPlayerState* PS = GetPlayerState<ACRPlayerState>())
+	{
+		AbilitySystemComponent = Cast<UCRAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+		if (AbilitySystemComponent != nullptr)
+		{
+			AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+			BindingChangeDelegate();
+			if (UCRAnimInstance* AnimInstance = Cast<UCRAnimInstance>(GetMesh()->GetAnimInstance()))
+			{
+				AnimInstance->InitializeWithAbilitySystem(AbilitySystemComponent);
+			}
+			
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PossessedBy] PlayerState is Server NULL for %s"), *GetName());	
+	}
 }
 
 
@@ -114,9 +166,12 @@ void ACRPlayerCharacter::HandleLookAction(const FInputActionValue& Value)
 	
 }
 
+
+
 void ACRPlayerCharacter::HandleAbilityPressedAction(const FInputActionValue& Value, ECRAbilityInputID Key)
 {
-	if (AbilitySystemComponent == nullptr)
+	// IsValid() Ìï®ÏàòÎ°ú ÏïàÏ†ÑÌïòÍ≤å Ï≤¥ÌÅ¨
+	if (!IsValid(AbilitySystemComponent))
 	{
 		return;
 	}
@@ -136,7 +191,8 @@ void ACRPlayerCharacter::HandleAbilityPressedAction(const FInputActionValue& Val
 
 void ACRPlayerCharacter::HandleAbilityReleaseAction(const FInputActionValue& Value, ECRAbilityInputID Key)
 {
-	if (AbilitySystemComponent == nullptr)
+	// IsValid() Ìï®ÏàòÎ°ú ÏïàÏ†ÑÌïòÍ≤å Ï≤¥ÌÅ¨
+	if (!IsValid(AbilitySystemComponent))
 	{
 		return;
 	}

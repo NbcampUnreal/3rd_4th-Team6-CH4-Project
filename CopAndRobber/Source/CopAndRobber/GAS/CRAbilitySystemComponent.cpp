@@ -9,8 +9,7 @@
 
 UCRAbilitySystemComponent::UCRAbilitySystemComponent()
 {
-	GetGameplayAttributeValueChangeDelegate(UCRAttributeSet::GetHealthAttribute())
-    	.AddUObject(this, &UCRAbilitySystemComponent::UpdatedHealth);
+
 }
 
 void UCRAbilitySystemComponent::ApplyInitialEffects()
@@ -53,14 +52,6 @@ void UCRAbilitySystemComponent::GiveInitialAbilities()
 	}
 }
 
-void UCRAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
-{
-	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
-
-
-}
-
-
 void UCRAbilitySystemComponent::ApplyGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int level)
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority())
@@ -71,36 +62,4 @@ void UCRAbilitySystemComponent::ApplyGameplayEffect(TSubclassOf<UGameplayEffect>
 	ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
 }
 
-void UCRAbilitySystemComponent::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData)
-{
-	if (!IsValid(GetOwner()) || !GetOwner()->HasAuthority())
-		return;
-
-	// 체력 <= 0
-	if (OnAttributeChangeData.NewValue <= 0.f)
-	{
-
-		if (!HasMatchingGameplayTag(UGameplayTagsStatic::GetDeadStatTag()) && DeadEffect)
-		{
-			FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingSpec(DeadEffect, 1, MakeEffectContext());
-			if (EffectSpecHandle.IsValid() && EffectSpecHandle.Data.IsValid())
-			{
-				ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("DeadEffect Spec Handle is invalid!"));
-			}
-		}
-	}
-	else
-	{
-
-		if (HasMatchingGameplayTag(UGameplayTagsStatic::GetDeadStatTag()))
-		{
-			RemoveLooseGameplayTag(UGameplayTagsStatic::GetDeadStatTag());
-			UE_LOG(LogTemp, Warning, TEXT("Dead tag removed"));
-		}
-	}
-}
 
