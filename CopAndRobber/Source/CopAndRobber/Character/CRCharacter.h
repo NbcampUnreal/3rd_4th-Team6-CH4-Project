@@ -29,6 +29,7 @@ protected:
 
 	virtual void PossessedBy(AController* NewController) override;
 
+	virtual void OnRep_PlayerState() override;
 
 
 #pragma  region  GAS
@@ -60,7 +61,7 @@ protected:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AnimMontage")
 	TObjectPtr<UAnimMontage> StunMontage;
-	
+public:
 	UPROPERTY(EditDefaultsOnly, Category = "AnimMontage")
 	TObjectPtr<UAnimMontage> DeathMontage;
 

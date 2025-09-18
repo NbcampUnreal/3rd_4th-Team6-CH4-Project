@@ -3,6 +3,7 @@
 
 #include "Character/CRCharacter.h"
 
+#include "Animation/CRAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
@@ -32,6 +33,11 @@ ACRCharacter::ACRCharacter()
 
 #pragma region Gas
 	AbilitySystemComponent  = CreateDefaultSubobject<UCRAbilitySystemComponent>(TEXT("CRAbilitySystemComponent"));
+	if (AbilitySystemComponent != nullptr)
+	{
+		AbilitySystemComponent->SetIsReplicated(true);
+		AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
+	}
 	AttributeSet = CreateDefaultSubobject<UCRAttributeSet>(TEXT("AttributeSet"));
 
 #pragma endregion
@@ -62,6 +68,16 @@ void ACRCharacter::PossessedBy(AController* NewController)
 		BindingChangeDelegate();
 		ServerSide();
 	}
+}
+
+void ACRCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	if (ACRCharacter* PS = Cast<ACRCharacter>(GetPlayerState()))
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+	}
+	BindingChangeDelegate();
 }
 
 
@@ -114,12 +130,12 @@ void ACRCharacter::OnStunTagChanged(const FGameplayTag Tag, int32 NewCount)
 	if (NewCount != 0)
 	{
 		OnStun();
-		PlayAnimMontage(StunMontage);
+	
 	}
 	else
 	{
 		RecoverStun();
-		StopAnimMontage(StunMontage);
+		
 	}
 	
 }
@@ -135,26 +151,22 @@ void ACRCharacter::RecoverStun()
 }
 void ACRCharacter::OnDeathTagChanged(FGameplayTag Tag, int32 NewCount)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Dead ssdasdsada"));
 	if (NewCount != 0)
 	{
 		
 		OnDeath();
-
-		if (AbilitySystemComponent)
-		{
-			AbilitySystemComponent->CancelAllAbilities();
-			
-		}
-		PlayAnimMontage(DeathMontage);
-		UE_LOG(LogTemp, Warning, TEXT("Dead Montage"));
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		UE_LOG(LogTemp, Warning, TEXT("[server] OnDeathTagChanged called for %s"), *GetName());
+	}
+	if (!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Client] OnDeathTagChanged called for %s"), *GetName());
 	}
 }
 void ACRCharacter::OnDeath()
 {
 
 }
+
 #pragma endregion 
 
 
