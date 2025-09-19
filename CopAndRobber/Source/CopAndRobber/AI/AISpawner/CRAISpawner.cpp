@@ -17,7 +17,7 @@ void ACRAISpawner::BeginPlay()
 
 void ACRAISpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	for (ACharacter* AI : SpawnedAIs)
+	for (ACRAICharacter* AI : SpawnedAIs)
 	{
 		if (IsValid(AI))
 		{
@@ -48,7 +48,7 @@ void ACRAISpawner::SpawnAllAI()
 			SpawnLoc = AdjustCapsuleHeight(SpawnLoc);
 			FRotator SpawnRot(0.f, FMath::RandRange(0.f, 360.f), 0.f);
 			
-			ACharacter* SpawnedChar = SpawnAI(SpawnLoc, SpawnRot);
+			ACRAICharacter* SpawnedChar = SpawnAI(SpawnLoc, SpawnRot);
 			if (SpawnedChar)
 			{
 				Spawned++; 
@@ -80,7 +80,7 @@ FVector ACRAISpawner::AdjustCapsuleHeight(const FVector& Location) const
 {
 	if (!AIClass) return Location;
 
-	ACharacter* DefaultChar = AIClass->GetDefaultObject<ACharacter>();
+	ACRAICharacter* DefaultChar = AIClass->GetDefaultObject<ACRAICharacter>();
 	if (!DefaultChar) return Location;
 
 	float CapsuleHalfHeight = DefaultChar->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
@@ -88,7 +88,7 @@ FVector ACRAISpawner::AdjustCapsuleHeight(const FVector& Location) const
 }
 
 
-ACharacter* ACRAISpawner::SpawnAI(const FVector& Location, const FRotator& Rotation)
+ACRAICharacter* ACRAISpawner::SpawnAI(const FVector& Location, const FRotator& Rotation)
 {
 	UWorld* World = GetWorld();
 	if (!World || !AIClass) return nullptr;
@@ -100,7 +100,7 @@ ACharacter* ACRAISpawner::SpawnAI(const FVector& Location, const FRotator& Rotat
     
 	if (HasAuthority())
 	{
-		ACharacter* SpawnedChar = World->SpawnActor<ACharacter>(AIClass, Location, Rotation, SpawnParams);
+		ACRAICharacter* SpawnedChar = World->SpawnActor<ACRAICharacter>(AIClass, Location, Rotation, SpawnParams);
 		if (SpawnedChar)
 		{
 			SpawnedAIs.Add(SpawnedChar);
