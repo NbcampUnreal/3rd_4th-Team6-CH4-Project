@@ -69,13 +69,6 @@ void ACRGameModeBase::RestartPlayer(AController* NewPlayer)
 		for (int32 i = 0; i < MaxAttempts; ++i)
 		{
 			FNavLocation RandomLocation;
-			
-			// TODO: 물(Water)과 같은 특정 영역을 스폰에서 제외하려면 Navigation Query Filter를 사용해야 합니다.
-			// 1. 프로젝트 세팅 > 네비게이션 시스템 > Area에 'Water' 같은 새로운 Area Type을 추가합니다.
-			// 2. NavMesh 리빌드 시 물에 해당하는 Volume의 Navigation Area를 'Water'로 설정합니다.
-			// 3. 아래 FNavQueryFilter에서 해당 Area의 비용을 조절하여 제외할 수 있습니다.
-			// FNavQueryFilter QueryFilter;
-			// QueryFilter.SetAreaCost(UNavArea::GetNavAreaFromName(TEXT("Water")), NAV_AREA_INVALID);
 
 			bool bFoundLocation = NavSys->GetRandomPointInNavigableRadius(SearchOrigin, SearchRadius, RandomLocation);
 			if (bFoundLocation)
@@ -103,7 +96,6 @@ void ACRGameModeBase::RestartPlayer(AController* NewPlayer)
 		// 만약 유효한 위치를 찾지 못했다면, 안전한 기본 위치에서 스폰 (예: 0,0,100)
 		if (!bFoundValidLocation)
 		{
-			// Fallback to a default location if no valid spot was found
 			SpawnLocation = FVector(0.f, 0.f, 100.f);
 		}
 	}
