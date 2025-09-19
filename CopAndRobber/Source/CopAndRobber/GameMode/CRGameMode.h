@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
-#include "CRGameModeBase.generated.h"
+#include "CRGameMode.generated.h"
 
 class ACRGameState;
 
 UCLASS()
-class COPANDROBBER_API ACRGameModeBase : public AGameMode
+class COPANDROBBER_API ACRGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
 public:
-	ACRGameModeBase();
+	ACRGameMode();
 
 protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
@@ -23,6 +23,9 @@ protected:
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "GameMode")
 	int32 MinPlayersToStart;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	TSubclassOf<class ACRAISpawner> AISpawnerClass;
 
 	void BeginGame();
 

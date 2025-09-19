@@ -32,7 +32,9 @@ void ACRAISpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ACRAISpawner::SpawnAllAI()
 {
 	if (!HasAuthority() || !AIClass) 
+	{
 		return;
+	}
 
 	UWorld* World = GetWorld();
 	if (!World) return;

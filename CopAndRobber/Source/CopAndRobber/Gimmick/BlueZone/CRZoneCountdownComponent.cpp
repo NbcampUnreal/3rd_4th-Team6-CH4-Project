@@ -4,7 +4,7 @@
 
 UCRZoneCountdownComponent::UCRZoneCountdownComponent()
 {
-	SetIsReplicated(true);
+	SetIsReplicatedByDefault(true);
 	RemainingSeconds = MaxSeconds;
 	PrimaryComponentTick.bCanEverTick = false;
 }

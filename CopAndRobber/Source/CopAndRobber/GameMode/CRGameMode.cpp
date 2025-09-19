@@ -1,19 +1,20 @@
-#include "GameMode/CRGameModeBase.h"
+#include "GameMode/CRGameMode.h"
 #include "GameMode/CRGameState.h"
 #include "GameMode/CRPlayerState.h"
 #include "NavigationSystem.h"
 #include "Character/Player/CRPlayerCharacter.h"
 #include "Controller/CRPlayerController.h"
 #include "GameData/CRPlayerInputConfig.h"
+#include "AI/AISpawner/CRAISpawner.h"
 
-ACRGameModeBase::ACRGameModeBase()
+ACRGameMode::ACRGameMode()
 {
 	GameStateClass = ACRGameState::StaticClass();
 	PlayerStateClass = ACRPlayerState::StaticClass();
 	MinPlayersToStart = 2;
 }
 
-void ACRGameModeBase::PostLogin(APlayerController* NewPlayer)
+void ACRGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
@@ -31,7 +32,7 @@ void ACRGameModeBase::PostLogin(APlayerController* NewPlayer)
 	}
 }
 
-void ACRGameModeBase::RestartPlayer(AController* NewPlayer)
+void ACRGameMode::RestartPlayer(AController* NewPlayer)
 {
 	if (NewPlayer == nullptr || NewPlayer->IsPendingKillPending())
 	{
@@ -70,7 +71,7 @@ void ACRGameModeBase::RestartPlayer(AController* NewPlayer)
 		{
 			FNavLocation RandomLocation;
 
-			bool bFoundLocation = NavSys->GetRandomPointInNavigableRadius(SearchOrigin, SearchRadius, RandomLocation);
+			bool bFoundLocation = NavSys->GetRandomReachablePointInRadius(SearchOrigin, SearchRadius, RandomLocation);
 			if (bFoundLocation)
 			{
 				FVector CandidateLocation = RandomLocation.Location;
@@ -87,6 +88,7 @@ void ACRGameModeBase::RestartPlayer(AController* NewPlayer)
 				if (!bHasCollision)
 				{
 					SpawnLocation = CandidateLocation + FVector(0.f, 0.f, 50.f); // 바닥에서 살짝 띄워서 스폰
+					UE_LOG(LogGameMode, Warning, TEXT("Found valid spawn location on NavMesh: %s"), *SpawnLocation.ToString());
 					bFoundValidLocation = true;
 					break;
 				}
@@ -97,6 +99,7 @@ void ACRGameModeBase::RestartPlayer(AController* NewPlayer)
 		if (!bFoundValidLocation)
 		{
 			SpawnLocation = FVector(0.f, 0.f, 100.f);
+			UE_LOG(LogGameMode, Warning, TEXT("Could not find valid spawn location on NavMesh, using fallback location: %s"), *SpawnLocation.ToString());
 		}
 	}
 
@@ -127,10 +130,23 @@ void ACRGameModeBase::RestartPlayer(AController* NewPlayer)
 }
 
 
-void ACRGameModeBase::BeginGame()
+void ACRGameMode::BeginGame()
 {
 	if (CRGameState)
 	{
 		CRGameState->GamePhase = EGamePhase::GameInProgress;
+	}
+
+	if (AISpawnerClass)
+	{
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			ACRAISpawner* AISpawner = World->SpawnActor<ACRAISpawner>(AISpawnerClass, FVector::ZeroVector, FRotator::ZeroRotator);
+			if (AISpawner)
+			{
+				AISpawner->SpawnAllAI();
+			}
+		}
 	}
 }

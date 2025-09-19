@@ -16,12 +16,12 @@ class COPANDROBBER_API ACRAISpawner : public AActor
 public:	
 	ACRAISpawner();
 
+	//AI 캐릭터 스폰 반복
+	void SpawnAllAI();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	//AI 캐릭터 스폰 반복
-	void SpawnAllAI();
 
 	// NavMesh에서 랜덤 위치 가져오기
 	bool GetRandomSpawnLocation(FVector& OutLocation) const;
