@@ -25,3 +25,8 @@ FGameplayTag UGameplayTagsStatic::GetGenericDamagePointTag()
 {
 	return FGameplayTag::RequestGameplayTag("ability.generic.damage");
 }
+
+FGameplayTag UGameplayTagsStatic::GetHitStatTag()
+{
+	return FGameplayTag::RequestGameplayTag("character.stats.hit");
+}
