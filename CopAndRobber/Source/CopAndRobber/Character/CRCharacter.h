@@ -30,9 +30,11 @@ protected:
 	virtual void BeginPlay() override;
 
 #pragma  region  GAS
-protected:
+public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UCRAbilitySystemComponent* GetCRAbilitySystemComponent() const;
+	
+protected:
 	bool IsAbilitySystemInitialized() const;
 	void OnSpeedChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 	void OnStunTagChanged(FGameplayTag Tag, int32 NewCount);

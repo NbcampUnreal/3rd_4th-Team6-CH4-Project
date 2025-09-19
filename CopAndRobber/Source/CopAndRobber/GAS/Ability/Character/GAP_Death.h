@@ -17,6 +17,8 @@ class COPANDROBBER_API UGAP_Death : public UCRGameplayAbility
 public:
 	UGAP_Death();
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	void EndDeathAbility();
+
 protected:
 	
 	

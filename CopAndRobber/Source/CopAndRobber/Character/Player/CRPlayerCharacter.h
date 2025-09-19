@@ -33,8 +33,8 @@ protected:
 	virtual void OnStun() override;
 
 	virtual void RecoverStun() override;
+	void OnDeath();
 
-	
 
 #pragma region Camera Setting
 protected:

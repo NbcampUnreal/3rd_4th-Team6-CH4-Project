@@ -240,4 +240,12 @@ void ACRPlayerCharacter::RecoverStun()
 		PC->SetIgnoreMoveInput(false);
 	}
 }
-
+void ACRPlayerCharacter::OnDeath()
+{
+	Super::OnDeath();
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		PC->SetIgnoreMoveInput(false);
+	}
+}
