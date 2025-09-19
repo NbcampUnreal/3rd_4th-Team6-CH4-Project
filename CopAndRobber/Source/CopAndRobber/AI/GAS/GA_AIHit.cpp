@@ -19,7 +19,6 @@ void UGA_AIHit::ActivateAbility(
     const FGameplayEventData* TriggerEventData)
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-    UE_LOG(LogTemp,Log,TEXT("AI Hit"));
 
     ACRAICharacter* AIChar = Cast<ACRAICharacter>(ActorInfo->AvatarActor.Get());
     if (!AIChar)
@@ -28,6 +27,16 @@ void UGA_AIHit::ActivateAbility(
         return;
     }
 
+    if (TriggerEventData)
+    {
+        if (const AActor* InstigatorActor = TriggerEventData->Instigator.Get())
+        {
+            FVector Dir = InstigatorActor->GetActorLocation() - AIChar->GetActorLocation();
+            AIChar->SetActorRotation(Dir.Rotation());
+        }
+    }
+
+   
     if (ACRAIController* AIController = Cast<ACRAIController>(AIChar->GetController()))
     {
         if (UBehaviorTreeComponent* BTComp = AIController->FindComponentByClass<UBehaviorTreeComponent>())
@@ -38,6 +47,7 @@ void UGA_AIHit::ActivateAbility(
 
     AIChar->GetCharacterMovement()->DisableMovement();
 
+   
     if (HitMontage)
     {
         UAbilityTask_PlayMontageAndWait* PlayMontageTask =
@@ -51,6 +61,7 @@ void UGA_AIHit::ActivateAbility(
         EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
     }
 }
+
 
 void UGA_AIHit::OnMontageFinished()
 {
