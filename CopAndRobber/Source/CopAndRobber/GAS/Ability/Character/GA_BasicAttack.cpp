@@ -4,6 +4,7 @@
 #include "GAS/Ability/Character/GA_BasicAttack.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Character/CRCharacter.h"
@@ -65,40 +66,51 @@ void UGA_BasicAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 void UGA_BasicAttack::CheckTargetHit(FGameplayEventData Data)
 {
    
-    if (!K2_HasAuthority())
-    {
-        return;
-    }
+	if (!K2_HasAuthority())
+	{
+		return;
+	}
 
-    int HitCount = UAbilitySystemBlueprintLibrary::GetDataCountFromTargetData(Data.TargetData);
-    
-    IGenericTeamAgentInterface* GTI = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
-    if (GTI)
-    {
-       for (int i=0; i<HitCount; i++)
-       {
-          FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(Data.TargetData, i);
-          
-          if (HitResult.GetActor())
-          {
+	int HitCount = UAbilitySystemBlueprintLibrary::GetDataCountFromTargetData(Data.TargetData);
+	
+	IGenericTeamAgentInterface* GTI = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
+	if (GTI)
+	{
+		for (int i=0; i<HitCount; i++)
+		{
+			FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(Data.TargetData, i);
+			
+			if (HitResult.GetActor())
+			{
 
              if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Hostile)
              {
-                FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(BasicAttackEffect, 1);
-                FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
-                EffectSpecHandle.Data->SetContext(EffectContext);
-                ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitResult.GetActor()));
+             	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(BasicAttackEffect, 1);
+             	FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
+             	EffectSpecHandle.Data->SetContext(EffectContext);
+             	ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitResult.GetActor()));
              }
              else if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Neutral)
              {
-                FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(StunEffect, 1);
-                FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
-                EffectSpecHandle.Data->SetContext(EffectContext);
+             	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(StunEffect, 1);
+             	FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
+             	EffectSpecHandle.Data->SetContext(EffectContext);
 
-                ApplyGameplayEffectSpecToOwner( GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo,EffectSpecHandle); 
-             }
-             break;
-          }
-       }
-    }
+             	ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
+        	
+					UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitResult.GetActor());
+					if (TargetASC)
+					{
+						FGameplayEventData HitEventData;
+						HitEventData.Instigator = GetAvatarActorFromActorInfo();
+						HitEventData.Target = HitResult.GetActor();
+						HitEventData.EventTag = FGameplayTag::RequestGameplayTag("character.stats.Hit");
+
+						TargetASC->HandleGameplayEvent(HitEventData.EventTag, &HitEventData);
+					}
+				}
+				break; 
+			}
+		}
+	}
 }
