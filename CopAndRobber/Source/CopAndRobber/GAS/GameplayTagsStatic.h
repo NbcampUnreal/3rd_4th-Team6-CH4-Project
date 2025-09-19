@@ -22,6 +22,6 @@ public:
 	static FGameplayTag GetStunStatTag();
 
 	static FGameplayTag GetGenericDamagePointTag();
-	
-	
+
+	static FGameplayTag GetHitStatTag();
 };

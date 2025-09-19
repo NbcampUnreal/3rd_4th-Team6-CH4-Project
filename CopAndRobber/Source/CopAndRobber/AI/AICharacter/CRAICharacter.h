@@ -6,18 +6,25 @@
 #include "Character/CRCharacter.h"
 #include "CRAICharacter.generated.h"
 
-/**
- * 
- */
+class UCRAbilitySystemComponent;
+class UCRAttributeSet;
+class UBehaviorTree;
+
 UCLASS()
 class COPANDROBBER_API ACRAICharacter : public ACRCharacter
 {
 	GENERATED_BODY()
+
 public:
 	ACRAICharacter();
+
+protected:
 	virtual void BeginPlay() override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	UAnimMontage* HitMontage;
-
+public:
+	UPROPERTY(EditDefaultsOnly, Category="AI")
+	TArray<TSubclassOf<class UGameplayAbility>> AIAbilities;
+	void InitializeAI();
+	virtual void PossessedBy(AController* NewController) override;
+private:
+	bool bIsInitialized = false;
 };

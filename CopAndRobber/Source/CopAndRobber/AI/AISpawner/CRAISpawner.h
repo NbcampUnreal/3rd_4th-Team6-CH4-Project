@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "AIController.h"
+#include "AI/AICharacter/CRAICharacter.h"
 #include "CRAISpawner.generated.h"
 
 UCLASS()
@@ -29,7 +30,7 @@ protected:
 	FVector AdjustCapsuleHeight(const FVector& Location) const;
 
 	//AI 캐릭터 스폰 
-	ACharacter* SpawnAI(const FVector& Location, const FRotator& Rotation);
+	ACRAICharacter* SpawnAI(const FVector& Location, const FRotator& Rotation);
 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
@@ -42,6 +43,6 @@ protected:
 	TSubclassOf<AAIController> AIControllerClass;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Spawner")
-	TArray<ACharacter*> SpawnedAIs;
+	TArray<ACRAICharacter*> SpawnedAIs;
 
 };
