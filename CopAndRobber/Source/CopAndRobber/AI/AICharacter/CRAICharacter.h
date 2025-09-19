@@ -24,7 +24,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="AI")
 	TArray<TSubclassOf<class UGameplayAbility>> AIAbilities;
 	void InitializeAI();
-
+	virtual void PossessedBy(AController* NewController) override;
 private:
 	bool bIsInitialized = false;
 };

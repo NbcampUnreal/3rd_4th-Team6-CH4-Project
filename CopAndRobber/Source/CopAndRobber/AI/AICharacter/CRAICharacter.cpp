@@ -49,3 +49,12 @@ void ACRAICharacter::InitializeAI()
     }
     bIsInitialized = true;
 }
+
+void ACRAICharacter::PossessedBy(AController* NewController)
+{
+    Super::PossessedBy(NewController);
+    if (IsValid(AbilitySystemComponent))
+    {
+        AbilitySystemComponent->InitAbilityActorInfo(this,this);
+    }
+}
