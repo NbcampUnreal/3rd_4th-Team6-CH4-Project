@@ -22,9 +22,7 @@ public:
 	void ApplyInitialEffects();
 	void GiveInitialAbilities();
 	void ApplyGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int level = 1);
-
-	
-
+	void RemoveAllAbilities();
 
 private:
 	
