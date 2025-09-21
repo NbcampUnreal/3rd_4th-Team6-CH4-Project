@@ -6,6 +6,8 @@
 #include "Controller/CRPlayerController.h"
 #include "GameData/CRPlayerInputConfig.h"
 #include "AI/AISpawner/CRAISpawner.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 ACRGameMode::ACRGameMode()
 {
@@ -21,7 +23,6 @@ void ACRGameMode::PostLogin(APlayerController* NewPlayer)
 	if (NewPlayer)
 	{
 		FString PlayerName = NewPlayer->GetPlayerState<APlayerState>()->GetPlayerName();
-		UE_LOG(LogTemp, Log, TEXT("PlayerName: %s"), *PlayerName);
 	}
 
 	CRGameState = GetGameState<ACRGameState>();
@@ -29,8 +30,6 @@ void ACRGameMode::PostLogin(APlayerController* NewPlayer)
 	{
 		CRGameState->NumPlayers++;
 		
-		//  ÷̾  MinPlayersToStart ̻ , GamePhase ÷̾    ӽ
-		//  غ ư Ȱȭ κ  κп Ͻø ˴ϴ
 		if (CRGameState->NumPlayers >= MinPlayersToStart && CRGameState->GamePhase == EGamePhase::WaitingForPlayers)
 		{
 			BeginGame();
@@ -51,20 +50,15 @@ void ACRGameMode::RestartPlayer(AController* NewPlayer)
 		return;
 	}
 
-	// 스폰 위치와 회전 초기화
 	FVector SpawnLocation = FVector::ZeroVector;
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 	
-	// NavMesh 시스템 가져오기
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
 	if (NavSys)
 	{
 		bool bFoundValidLocation = false;
-		// 유효한 위치를 찾기 위한 최대 시도 횟수
 		const int32 MaxAttempts = 10;
-		// 검색 반경
 		const float SearchRadius = 5000.0f;
-		// 검색 원점
 		const FVector SearchOrigin = FVector::ZeroVector;
 
 		// TODO: 플레이어 폰의 충돌 크기를 가져와야 합니다. 여기서는 임시로 캡슐 크기를 사용합니다.
@@ -94,7 +88,6 @@ void ACRGameMode::RestartPlayer(AController* NewPlayer)
 				if (!bHasCollision)
 				{
 					SpawnLocation = CandidateLocation + FVector(0.f, 0.f, 50.f); // 바닥에서 살짝 띄워서 스폰
-					UE_LOG(LogGameMode, Warning, TEXT("Found valid spawn location on NavMesh: %s"), *SpawnLocation.ToString());
 					bFoundValidLocation = true;
 					break;
 				}
@@ -105,7 +98,6 @@ void ACRGameMode::RestartPlayer(AController* NewPlayer)
 		if (!bFoundValidLocation)
 		{
 			SpawnLocation = FVector(0.f, 0.f, 100.f);
-			UE_LOG(LogGameMode, Warning, TEXT("Could not find valid spawn location on NavMesh, using fallback location: %s"), *SpawnLocation.ToString());
 		}
 	}
 
@@ -155,4 +147,61 @@ void ACRGameMode::BeginGame()
 			}
 		}
 	}
+
+	// 게임이 시작되면 자기장 카운트다운 시작
+	StartSafeZoneCountdown();
+}
+
+void ACRGameMode::StartSafeZoneCountdown()
+{
+    // 서버 로그에 메시지 출력
+    UE_LOG(LogTemp, Warning, TEXT("자기장 카운트다운을 시작합니다. (%d초)"), SafeZoneCountdownDuration);
+
+    RemainingCountdownTime = SafeZoneCountdownDuration;
+
+    // GameState를 가져와서 초기 시간 설정
+    ACRGameState* CRGameState = GetGameState<ACRGameState>();
+    if (CRGameState)
+    {
+        CRGameState->RemainingTimeBeforeShrink = RemainingCountdownTime;
+        // RepNotify가 즉시 호출되지 않으므로 서버 쪽에서도 수동으로 호출해주는 것이 좋음
+        CRGameState->OnRep_RemainingTimeBeforeShrink();
+    }
+
+    // 1초마다 UpdateSafeZoneTimer 함수를 반복 호출하는 타이머 설정
+    GetWorld()->GetTimerManager().SetTimer(
+        SafeZoneTimerHandle, 
+        this, 
+        &ACRGameMode::UpdateSafeZoneTimer, 
+        1.0f, 
+        true
+    );
+}
+
+void ACRGameMode::UpdateSafeZoneTimer()
+{
+    RemainingCountdownTime--;
+
+    // GameState의 시간 업데이트 -> 모든 클라이언트로 복제됨
+    ACRGameState* GameState = GetGameState<ACRGameState>();
+    if (GameState)
+    {
+        GameState->RemainingTimeBeforeShrink = RemainingCountdownTime;
+        // 서버에서도 RepNotify를 호출하여 일관성 유지
+        GameState->OnRep_RemainingTimeBeforeShrink();
+    }
+
+    if (RemainingCountdownTime <= 0)
+    {
+        // 타이머 종료
+        GetWorld()->GetTimerManager().ClearTimer(SafeZoneTimerHandle);
+        OnSafeZoneCountdownFinished();
+    }
+}
+
+void ACRGameMode::OnSafeZoneCountdownFinished()
+{
+    UE_LOG(LogTemp, Warning, TEXT("자기장 카운트다운 종료! 자기장 축소를 시작합니다."));
+
+    // TODO: 여기에 실제 자기장을 줄이는 로직을 시작하는 코드를 추가
 }
