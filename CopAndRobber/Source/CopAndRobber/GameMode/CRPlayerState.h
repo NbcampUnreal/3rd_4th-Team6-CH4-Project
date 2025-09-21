@@ -11,6 +11,9 @@
 /**
  * 
  */
+// 레디 상태가 변경될 때 UI를 업데이트하기 위한 신호
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReadyStateChange, bool, bIsReady);
+
 UCLASS()
 class COPANDROBBER_API ACRPlayerState : public APlayerState, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
@@ -38,5 +41,5 @@ protected:
 
 	UPROPERTY(Replicated)
 	FGenericTeamId MyTeamID;
-
+	
 };

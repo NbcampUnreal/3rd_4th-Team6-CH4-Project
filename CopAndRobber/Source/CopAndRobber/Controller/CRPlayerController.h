@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "CRPlayerController.generated.h"
 
+
+class UUserWidget;
 /**
  * 
  */
@@ -20,8 +22,28 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_SetupInput(UCRPlayerInputConfig* InPlayerInputConfig);
 
+	void JoinServer(const FString& Address, const FString& Nickname);
+	
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
 
 	virtual void AcknowledgePossession(class APawn* P) override;
+
+
+protected:
+	virtual void BeginPlay() override;
+
+public:
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> TitleWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> LobbyWidgetClass;
+
+private:
+	UPROPERTY()
+	TObjectPtr<UUserWidget> TitleWidgetInstance;
+
+	UPROPERTY()
+	TObjectPtr<UUserWidget> LobbyWidgetInstance;
 };

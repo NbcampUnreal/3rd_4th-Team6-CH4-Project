@@ -17,7 +17,7 @@ public class CopAndRobber : ModuleRules
 			//Nav
 			"NavigationSystem",
 			//UI
-			"UMG", "Slate", "SlateCore"
+			"UMG", "Slate", "SlateCore",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
