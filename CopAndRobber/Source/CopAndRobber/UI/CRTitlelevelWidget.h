@@ -13,31 +13,42 @@ class COPANDROBBER_API UCRTitlelevelWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	UCRTitlelevelWidget(const FObjectInitializer& ObjectInitializer);
+
 protected:
 	virtual void NativeConstruct() override;
+private:
+	UFUNCTION()
+	void OnPlayButtonClicked();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess="true"))
-	TObjectPtr<UWidgetSwitcher> TitleSwitcher;
+	UFUNCTION()
+	void OnConfirmButtonClicked();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess="true"))
-	TObjectPtr<UButton> StartButton;
+	UFUNCTION()
+	void OnBackButtonClicked();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess="true"))
+	UFUNCTION()
+	void OnExitButtonClicked();
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UWidgetSwitcher> ScreenSwitcher;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> PlayButton;
+
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ExitButton;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess="true"))
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UEditableTextBox> ServerIPEditableText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UEditableTextBox> NicknameEditableText;
+	
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ConfirmButton;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess="true"))
-	TObjectPtr<UEditableTextBox> NicknameInputBox;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess="true"))
-	TObjectPtr<UEditableTextBox> IPAddressInputBox;
-
-private:
-	UFUNCTION() void OnStartButtonClicked();
-	UFUNCTION() void OnExitButtonClicked();
-	UFUNCTION() void OnConfirmButtonClicked();
-
-	bool ValidateIPv4(const FString& In) const;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> BackButton;
 };

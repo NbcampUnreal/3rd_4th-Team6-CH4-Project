@@ -18,6 +18,12 @@ void ACRGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
+	if (NewPlayer)
+	{
+		FString PlayerName = NewPlayer->GetPlayerState<APlayerState>()->GetPlayerName();
+		UE_LOG(LogTemp, Log, TEXT("PlayerName: %s"), *PlayerName);
+	}
+
 	CRGameState = GetGameState<ACRGameState>();
 	if (CRGameState)
 	{
