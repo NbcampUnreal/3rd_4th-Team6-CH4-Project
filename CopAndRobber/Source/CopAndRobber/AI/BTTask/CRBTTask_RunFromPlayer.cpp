@@ -13,21 +13,26 @@ EBTNodeResult::Type UCRBTTask_RunFromPlayer::ExecuteTask(UBehaviorTreeComponent&
 {
     ACRAIController* AICon = Cast<ACRAIController>(OwnerComp.GetAIOwner());
     if (!AICon || !AICon->GetBlackboardComponent())
+    {
         return EBTNodeResult::Failed;
-
+    }
     UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
     if (!BBComp->GetValueAsBool(ACRAIController::BBKey_bIsPlayerDetected))
+    {
         return EBTNodeResult::Failed;
-
+    }
     APawn* AIPawn = AICon->GetPawn();
-    if (!AIPawn) return EBTNodeResult::Failed;
-
+    if (!AIPawn)
+    {
+        return EBTNodeResult::Failed;
+    }
     FVector AIPos = AIPawn->GetActorLocation();
     FVector PlayerPos = BBComp->GetValueAsVector(ACRAIController::BBKey_PlayerLocation);
     FVector AwayDir = (AIPos - PlayerPos).GetSafeNormal();
     if (AwayDir.IsNearlyZero())
+    {
         AwayDir = FMath::VRand();
-
+    }
     FVector AwayCenter = AIPos + AwayDir * 600.f;
     FNavLocation NavLoc;
 

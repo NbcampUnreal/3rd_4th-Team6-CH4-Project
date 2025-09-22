@@ -12,7 +12,6 @@ ACRAISpawner::ACRAISpawner()
 void ACRAISpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	SpawnAllAI();
 }
 
 void ACRAISpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -63,11 +62,15 @@ void ACRAISpawner::SpawnAllAI()
 bool ACRAISpawner::GetRandomSpawnLocation(FVector& OutLocation) const
 {
 	UWorld* World = GetWorld();
-	if (!World) return false;
-
+	if (!World)
+	{
+		return false;
+	}
 	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(World);
-	if (!NavSys) return false;
-
+	if (!NavSys)
+	{
+		return false;
+	}
 	FNavLocation RandomLocation;
 	if (NavSys->GetRandomPoint(RandomLocation))
 	{
@@ -80,11 +83,15 @@ bool ACRAISpawner::GetRandomSpawnLocation(FVector& OutLocation) const
 
 FVector ACRAISpawner::AdjustCapsuleHeight(const FVector& Location) const
 {
-	if (!AIClass) return Location;
-
+	if (!AIClass)
+	{
+		return Location;
+	}
 	ACRAICharacter* DefaultChar = AIClass->GetDefaultObject<ACRAICharacter>();
-	if (!DefaultChar) return Location;
-
+	if (!DefaultChar)
+	{
+		return Location;
+	}
 	float CapsuleHalfHeight = DefaultChar->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	return Location + FVector(0.f, 0.f, CapsuleHalfHeight);
 }
@@ -93,8 +100,10 @@ FVector ACRAISpawner::AdjustCapsuleHeight(const FVector& Location) const
 ACRAICharacter* ACRAISpawner::SpawnAI(const FVector& Location, const FRotator& Rotation)
 {
 	UWorld* World = GetWorld();
-	if (!World || !AIClass) return nullptr;
-
+	if (!World || !AIClass)
+	{
+		return nullptr;
+	}
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SpawnParams.Owner = this;

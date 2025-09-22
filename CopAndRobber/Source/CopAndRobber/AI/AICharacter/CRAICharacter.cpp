@@ -30,8 +30,10 @@ void ACRAICharacter::BeginPlay()
 
 void ACRAICharacter::InitializeAI()
 {
-    if (bIsInitialized) return;
-    
+    if (bIsInitialized)
+    {
+        return;
+    }
     if (AbilitySystemComponent)
     {
         for (auto AbilityClass : AIAbilities)

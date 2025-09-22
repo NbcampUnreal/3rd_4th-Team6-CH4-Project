@@ -11,14 +11,21 @@ UCRBTTask_ApproachPlayer::UCRBTTask_ApproachPlayer()
 EBTNodeResult::Type UCRBTTask_ApproachPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     ACRAIController* AICon = Cast<ACRAIController>(OwnerComp.GetAIOwner());
-    if (!AICon || !AICon->HasAuthority()) return EBTNodeResult::Failed;
+    if (!AICon || !AICon->HasAuthority())
+    {
+        return EBTNodeResult::Failed;
+    }
 
     UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
-    if (!BBComp) return EBTNodeResult::Failed;
-
+    if (!BBComp)
+    {
+        return EBTNodeResult::Failed;
+    }
     FVector PlayerLocation = BBComp->GetValueAsVector(ACRAIController::BBKey_PlayerLocation);
-    if (PlayerLocation.IsNearlyZero()) return EBTNodeResult::Failed;
-
+    if (PlayerLocation.IsNearlyZero())
+    {
+        return EBTNodeResult::Failed;
+    }
     BBComp->SetValueAsVector(ACRAIController::BBKey_TargetLocation, PlayerLocation);
     AICon->MoveToLocation(PlayerLocation, -1.f, false, true, false, false, nullptr, true);
 
@@ -37,14 +44,20 @@ EBTNodeResult::Type UCRBTTask_ApproachPlayer::ExecuteTask(UBehaviorTreeComponent
 void UCRBTTask_ApproachPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
     ACRAIController* AICon = Cast<ACRAIController>(OwnerComp.GetAIOwner());
-    if (!AICon) return;
-
+    if (!AICon)
+    {
+        return;
+    }
     UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
-    if (!BBComp) return;
-
+    if (!BBComp)
+    {
+        return;
+    }
     FVector PlayerLocation = BBComp->GetValueAsVector(ACRAIController::BBKey_PlayerLocation);
-    if (PlayerLocation.IsNearlyZero()) return;
-
+    if (PlayerLocation.IsNearlyZero())
+    {
+        return;
+    }
     FVector CurrentTarget = BBComp->GetValueAsVector(ACRAIController::BBKey_TargetLocation);
     if (!PlayerLocation.Equals(CurrentTarget, 10.f))
     {
@@ -55,10 +68,15 @@ void UCRBTTask_ApproachPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 
 void UCRBTTask_ApproachPlayer::OnApproachTimerFinished(UBehaviorTreeComponent* OwnerComp)
 {
-    if (!OwnerComp) return;
-
+    if (!OwnerComp)
+    {
+        return;
+    }
     ACRAIController* AICon = Cast<ACRAIController>(OwnerComp->GetAIOwner());
-    if (!AICon) return;
+    if (!AICon)
+    {
+        return;
+    }
     AICon->ResetActionIndex(); 
     FinishLatentTask(*OwnerComp, EBTNodeResult::Succeeded);
 }

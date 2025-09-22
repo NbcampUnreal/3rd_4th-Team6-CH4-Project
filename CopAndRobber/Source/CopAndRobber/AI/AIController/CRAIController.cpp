@@ -55,16 +55,20 @@ void ACRAIController::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    if (!bDrawDebug || !GetPawn() || !BlackboardComp || !SightConfig) return;
-
+    if (!bDrawDebug || !GetPawn() || !BlackboardComp || !SightConfig)
+    {
+        return;
+    }
     DrawDebugSight();
     UpdatePlayerLocation();
 }
 
 void ACRAIController::DrawDebugSight()
 {
-    if (!bDrawDebug || !GetPawn()) return;
-
+    if (!bDrawDebug || !GetPawn())
+    {
+        return;
+    }
     bool bPlayerDetected = BlackboardComp->GetValueAsBool(BBKey_bIsPlayerDetected);
     FVector EyeLocation;
     FRotator EyeRotation;
@@ -97,8 +101,10 @@ void ACRAIController::UpdatePlayerLocation()
 
 void ACRAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-    if (!Actor || !BlackboardComp) return;
-
+    if (!Actor || !BlackboardComp)
+    {
+        return;
+    }
     ACRPlayerCharacter* PlayerChar = Cast<ACRPlayerCharacter>(Actor);
     if (!PlayerChar) return;
 
@@ -118,8 +124,10 @@ void ACRAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 
 void ACRAIController::UpdateRandomActionIndex()
 {
-    if (!BlackboardComp) return;
-
+    if (!BlackboardComp)
+    {
+        return;
+    }
     bool bPlayerDetected = BlackboardComp->GetValueAsBool(BBKey_bIsPlayerDetected);
 
     if (bPlayerDetected)

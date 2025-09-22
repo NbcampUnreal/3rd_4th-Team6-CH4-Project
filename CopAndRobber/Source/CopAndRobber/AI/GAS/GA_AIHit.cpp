@@ -78,8 +78,10 @@ void UGA_AIHit::EndAbility(
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
     ACRAICharacter* AIChar = Cast<ACRAICharacter>(ActorInfo->AvatarActor.Get());
-    if (!AIChar) return;
-
+    if (!AIChar)
+    {
+        return;
+    }
     AIChar->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 
     if (ACRAIController* AIController = Cast<ACRAIController>(AIChar->GetController()))
