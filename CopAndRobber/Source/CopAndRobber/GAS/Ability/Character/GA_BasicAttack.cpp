@@ -83,7 +83,7 @@ void UGA_BasicAttack::CheckTargetHit(FGameplayEventData Data)
 			if (HitResult.GetActor())
 			{
 
-             if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Hostile)
+             if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Friendly)
              {
              	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(BasicAttackEffect, 1);
              	FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());

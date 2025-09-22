@@ -71,7 +71,6 @@ void ACRPlayerCharacter::PossessedBy(AController* NewController)
 	{
 		if (ACRPlayerState* PS = GetPlayerState<ACRPlayerState>())
 		{
-			TeamId = PS->GetGenericTeamId();
 			AbilitySystemComponent = Cast<UCRAbilitySystemComponent>(PS->GetAbilitySystemComponent());
 			if (AbilitySystemComponent != nullptr)
 			{
