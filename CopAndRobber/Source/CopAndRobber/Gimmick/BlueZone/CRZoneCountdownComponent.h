@@ -1,3 +1,5 @@
+//CRZoneCountdownComponent.h
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -46,6 +48,9 @@ protected:
 	void TickOneSecond();
 
 	FTimerHandle TimerHandle_Zone;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UGameplayEffect> DeathEffect;
 	
 	bool HasAuth() const { return GetOwner() && GetOwner()->HasAuthority(); }
 };

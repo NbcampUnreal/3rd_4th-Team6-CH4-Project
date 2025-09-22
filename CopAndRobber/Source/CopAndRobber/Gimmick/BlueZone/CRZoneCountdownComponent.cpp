@@ -1,6 +1,12 @@
+//CRZoneCountdownComponent.cpp
+
 #include "CRZoneCountdownComponent.h"
 
+#include "Character/CRCharacter.h"
+#include "GameFramework/Pawn.h"
+#include "GAS/CRAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
+
 
 UCRZoneCountdownComponent::UCRZoneCountdownComponent()
 {
@@ -74,7 +80,14 @@ void UCRZoneCountdownComponent::TickOneSecond()
 	
 	if (RemainingSeconds <= 0)
 	{
-		// 탈럭 함수 가져오기
+		if (ACRCharacter* CRCharacter = Cast<ACRCharacter>(GetOwner()))
+		{
+			if (CRCharacter->GetCRAbilitySystemComponent() && DeathEffect)
+			{
+				CRCharacter->GetCRAbilitySystemComponent()->ApplyGameplayEffect(DeathEffect);
+				UE_LOG(LogTemp, Warning, TEXT("Dead"));
+			}
+		}
 		ServerStopCountdown();
 	}
 }
