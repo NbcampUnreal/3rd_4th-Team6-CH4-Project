@@ -1,3 +1,5 @@
+//CRBlueZone.h
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -16,13 +18,41 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UCapsuleComponent* SafeZone;
-	UPROPERTY(EditAnywhere, Category = "Zone")
-	float ZoneRadius = 800.f;
-	UPROPERTY(EditAnywhere, Category = "Zone")
-	float ZoneHalfHeight = 1200.f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UStaticMeshComponent* ZoneMesh;
+	UPROPERTY(EditAnywhere, Category = "Zone", ReplicatedUsing = OnRep_ZoneRadius)
+	float ZoneRadius = 7500.f;
+	UPROPERTY(EditAnywhere, Category = "Zone", ReplicatedUsing = OnRep_ZoneRadius)
+	float ZoneHalfHeight = 7500.f;
+
+	UFUNCTION(BlueprintCallable, Category="Zone")
+	void SetZoneRadius(float NewRadius);
+
+	UFUNCTION()
+	void OnRep_ZoneRadius();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	
 protected:
+	UPROPERTY(EditAnywhere, Category="Zone")
+	float ShrinkDelay = 10.f;
+
+	UPROPERTY(EditAnywhere, Category="Zone")
+	float ShrinkDuration = 10.f;
+
+	UPROPERTY(EditAnywhere, Category="Zone")
+	float TargetRadius = 2000.f;
+
+	FTimerHandle ShrinkTimer;
+	bool bIsShrinking = false;
+
+	float StartRadius;
+	float ElapsedTime = 0.f;
+	
+	void StartShrink();
+	
 	virtual void BeginPlay() override;
+	virtual void Tick( float DeltaSeconds ) override;
 
 	UFUNCTION()
 	void OnZoneBeginOverlap(
@@ -39,4 +69,14 @@ protected:
 		UPrimitiveComponent* OtherComp,
 		int32 BodyIndex
 		);
+	
+private:
+	void SyncMeshToCapsuleRadius();
+	void ApplyZoneMaterialOnce();
+
+	UPROPERTY(EditDefaultsOnly, Category="Zone|Visual")
+	UMaterialInterface* ZoneBaseMaterial = nullptr;
+
+	UPROPERTY(Transient)
+	UMaterialInstanceDynamic* ZoneMID = nullptr;
 };
