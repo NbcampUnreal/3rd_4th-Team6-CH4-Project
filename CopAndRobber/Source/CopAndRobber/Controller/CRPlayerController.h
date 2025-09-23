@@ -7,6 +7,7 @@
 #include "CRPlayerController.generated.h"
 
 
+class UCRBattleHUDWidget;
 class UUserWidget;
 /**
  * 
@@ -39,11 +40,21 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> LobbyWidgetClass;
-
+	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UCRBattleHUDWidget> BattleWidgetClass;
+protected:
+	void ShowBattleHUD();
 private:
 	UPROPERTY()
 	TObjectPtr<UUserWidget> TitleWidgetInstance;
 
 	UPROPERTY()
 	TObjectPtr<UUserWidget> LobbyWidgetInstance;
+	
+	UPROPERTY()
+	TObjectPtr<UCRBattleHUDWidget> BattleWidgetInstance;
+
+
+
 };
