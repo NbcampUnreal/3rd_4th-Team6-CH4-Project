@@ -7,7 +7,7 @@
 
 void UCRBattleHUDWidget::InitializeSetupHUD(int32 SetTime, int32 SetAliveCount)
 {
-	CachedRemainingTime =  SetTime;
+	CachedRemainingTime = SetTime;
 	SetTimerRemaining(SetTime);
 	UpdateAliveCountTextBlock(SetAliveCount);
 
@@ -15,7 +15,7 @@ void UCRBattleHUDWidget::InitializeSetupHUD(int32 SetTime, int32 SetAliveCount)
 	   RemainTimerHandle,
 	   this,
 	   &ThisClass::CountDownTimerRemaining,
-	   0.1f,   
+	   1.f,   
 	   true
    );
 	
@@ -24,11 +24,12 @@ void UCRBattleHUDWidget::InitializeSetupHUD(int32 SetTime, int32 SetAliveCount)
 
 void UCRBattleHUDWidget::SetTimerRemaining(int32 RemainingTime)
 {
-	
+	RemainingTime = FMath::Max(0, RemainingTime);
+    
 	int32 Minutes = RemainingTime / 60;
 	int32 Seconds = RemainingTime % 60;
 
-	FString TimeString = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+	FString TimeString = FString::Printf(TEXT("자기장 축소 %02d:%02d"), Minutes, Seconds);
 	FText TimeText = FText::FromString(TimeString);
 	TimerTextBlock->SetText(TimeText);
 }
@@ -37,7 +38,7 @@ void UCRBattleHUDWidget::CountDownTimerRemaining()
 {
 	if (CachedRemainingTime > 0)
 	{
-		CachedRemainingTime--;
+		CachedRemainingTime --;
 		SetTimerRemaining(CachedRemainingTime);
 	}
 	else

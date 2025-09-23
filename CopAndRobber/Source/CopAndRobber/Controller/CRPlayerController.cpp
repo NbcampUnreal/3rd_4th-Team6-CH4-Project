@@ -9,6 +9,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/CRBattleHUDWidget.h"
 
 
 void ACRPlayerController::Client_SetupInput_Implementation(UCRPlayerInputConfig* InPlayerInputConfig)
@@ -75,6 +76,22 @@ void ACRPlayerController::BeginPlay()
 					bShowMouseCursor = false;
 				}
 		}
+
+	ShowBattleHUD();
+}
+
+void ACRPlayerController::ShowBattleHUD()
+{
+	if (BattleWidgetClass && IsLocalController())
+	{
+		BattleWidgetInstance = CreateWidget<UCRBattleHUDWidget>(this, BattleWidgetClass);
+		if (BattleWidgetInstance)
+		{
+			BattleWidgetInstance->AddToViewport();
+			BattleWidgetInstance->InitializeSetupHUD(180,1);
+			
+		}
+	}
 }
 
 void ACRPlayerController::JoinServer(const FString& Address, const FString& Nickname)

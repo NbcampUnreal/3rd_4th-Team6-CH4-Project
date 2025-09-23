@@ -154,33 +154,24 @@ void ACRCharacter::OnDeathTagChanged(FGameplayTag Tag, int32 NewCount)
 
 void ACRCharacter::OnDeath()
 {
-
+	
 }
 
 void ACRCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData)
 {
-	if (!GetCRAbilitySystemComponent())
+	if (!GetCRAbilitySystemComponent() && !HasAuthority())
 		return; 
 
 	UCRAbilitySystemComponent* ASC = GetCRAbilitySystemComponent();
 
 	if (OnAttributeChangeData.NewValue <= 0.f)
 	{
-		GetCRAbilitySystemComponent()->AddLooseGameplayTag(UGameplayTagsStatic::GetDeadStatTag());
 		if (!IsDead())
 		{
-            
-			ASC->AddLooseGameplayTag(UGameplayTagsStatic::GetDeadStatTag());
+			ASC->ApplyGameplayEffect(DeadEffect);
 		}
 	}
-	else
-	{
-		GetCRAbilitySystemComponent()->RemoveLooseGameplayTag(UGameplayTagsStatic::GetDeadStatTag());
-		if (IsDead())
-		{
-			ASC->RemoveLooseGameplayTag(UGameplayTagsStatic::GetDeadStatTag());
-		}
-	}
+
 
         
 }
