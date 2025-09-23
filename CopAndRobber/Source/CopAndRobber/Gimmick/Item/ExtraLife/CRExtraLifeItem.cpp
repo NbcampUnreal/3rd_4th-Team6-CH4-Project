@@ -9,7 +9,7 @@
 void ACRExtraLifeItem::Activate(AActor* Player)
 {
 	if (!HasAuthority() || !Player || !GE_ExtraLife) return;
-
+	Super::Activate(Player);
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Player))
 	{
 		FGameplayEffectContextHandle Ctx = ASC->MakeEffectContext();

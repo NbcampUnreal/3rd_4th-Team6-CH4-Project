@@ -9,7 +9,7 @@
 void ACRStealthItem::Activate(AActor* Player)
 {
 	if (!HasAuthority() || !Player || !GE_Stealth) return;
-
+	Super::Activate(Player);
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Player))
 	{
 		FGameplayEffectContextHandle Ctx = ASC->MakeEffectContext();

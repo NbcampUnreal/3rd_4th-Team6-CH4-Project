@@ -19,6 +19,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, Category="Sound")
+	USoundBase* PickupSound;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
 	float Duration = 0.f;
@@ -47,4 +50,7 @@ public:
 	virtual void Activate(AActor* Player) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayPickUpSound(FVector Loc);
 };

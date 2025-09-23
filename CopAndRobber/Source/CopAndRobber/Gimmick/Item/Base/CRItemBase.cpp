@@ -3,6 +3,7 @@
 #include "CRItemBase.h"
 
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 ACRItemBase::ACRItemBase()
@@ -35,6 +36,14 @@ void ACRItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACRItemBase, bPicked);
+}
+
+void ACRItemBase::PlayPickUpSound_Implementation(FVector Loc)
+{
+	if (PickupSound && GetNetMode() != NM_DedicatedServer)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, PickupSound, Loc);
+	}
 }
 
 void ACRItemBase::OnRep_Picked()
@@ -82,5 +91,18 @@ void ACRItemBase::ApplyPickedVisuals(bool bHide)
 	}
 }
 
-void ACRItemBase::Activate(AActor* Player){}
+void ACRItemBase::Activate(AActor* Player)
+{
+	if (PickupSound)
+	{
+		if (APawn* Pawn = Cast<APawn>(Player))
+		{
+			if (APlayerController* PC = Cast<APlayerController>(Pawn->GetController()))
+			{
+				PC->ClientPlaySound(PickupSound);
+			}
+		}
+		PlayPickUpSound(Player->GetActorLocation());
+	}
+}
 
