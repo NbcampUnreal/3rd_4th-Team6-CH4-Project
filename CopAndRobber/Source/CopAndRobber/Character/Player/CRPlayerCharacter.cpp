@@ -12,6 +12,7 @@
 #include "GAS/Ability/ECRAbilityInputID.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "Actor/CRDoor.h"
 #include "Character/Animation/CRAnimInstance.h"
 #include "GameMode/CRPlayerState.h"
 #include "GAS/Attribute/CRAttributeSet.h"
@@ -172,6 +173,14 @@ void ACRPlayerCharacter::OnGameplayEffectRemoved(const FActiveGameplayEffect& Ac
 	}
 }
 
+void ACRPlayerCharacter::ServerInteractDoor_Implementation(ACRDoor* Door)
+{
+	if (Door)
+	{
+		Door->ToggleDoor(); 
+	}
+}
+
 #pragma  region Input
 void ACRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -184,7 +193,8 @@ void ACRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		//ETC->BindAction()
 		ETC->BindAction(PlayerInputConfig->MoveAction,ETriggerEvent::Triggered,this,&ACRPlayerCharacter::HandleMoveAction);
 		ETC->BindAction(PlayerInputConfig->LookAction,ETriggerEvent::Triggered,this,&ACRPlayerCharacter::HandleLookAction);
-
+		ETC->BindAction(PlayerInputConfig->InteractAction, ETriggerEvent::Triggered, this, &ACRPlayerCharacter::HandleInteractAction);
+		
 		if (PlayerInputConfig->GameplayAbilityInputActions.Num() > 0)
 		{
 			for (const TPair<ECRAbilityInputID, UInputAction*> Pair : PlayerInputConfig->GameplayAbilityInputActions)
@@ -225,6 +235,24 @@ void ACRPlayerCharacter::HandleLookAction(const FInputActionValue& Value)
 }
 
 
+void ACRPlayerCharacter::HandleInteractAction(const FInputActionValue& Value)
+{
+	FVector Start = GetActorLocation();
+	FVector Forward = GetActorForwardVector();
+	FVector End = Start + Forward * 200.f;
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		if (ACRDoor* Door = Cast<ACRDoor>(Hit.GetActor()))
+		{
+			ServerInteractDoor(Door);
+		}
+	}
+}
 
 void ACRPlayerCharacter::HandleAbilityPressedAction(const FInputActionValue& Value, ECRAbilityInputID Key)
 {

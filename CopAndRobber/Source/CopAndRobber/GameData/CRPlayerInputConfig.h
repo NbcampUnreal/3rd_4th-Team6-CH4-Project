@@ -25,6 +25,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = InputAction)
 	TObjectPtr<UInputAction> SprintAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = InputAction)
+	TObjectPtr<UInputAction> InteractAction;
 	
 	UPROPERTY(EditDefaultsOnly, Category = InputAction)
 	TMap<ECRAbilityInputID, UInputAction*> GameplayAbilityInputActions;

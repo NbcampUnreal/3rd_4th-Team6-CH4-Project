@@ -28,7 +28,8 @@ public:
 	void OnEffectAdded(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle EffectHandle);
 	void OnGameplayEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
 	
-
+	UFUNCTION(Server, Reliable)
+	void ServerInteractDoor(ACRDoor* Door);
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void PawnClientRestart() override;
@@ -62,6 +63,7 @@ protected:
 protected:
 	void HandleMoveAction(const FInputActionValue& Value);
 	void HandleLookAction(const FInputActionValue& Value);
+	void HandleInteractAction(const FInputActionValue& Value);
 	
 	void HandleAbilityPressedAction(const FInputActionValue& Value, ECRAbilityInputID Key);
 	void HandleAbilityReleaseAction(const FInputActionValue& Value, ECRAbilityInputID Key);
