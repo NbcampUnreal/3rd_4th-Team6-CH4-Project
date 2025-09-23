@@ -24,7 +24,7 @@ void UCRItemBuffSlot::UpdateBuffSlot(const FGameplayTag& Tag, int Count)
             DurationTimer,
             this,
             &UCRItemBuffSlot::CheckBuffDuration,
-            1.0f,
+            0.1f,
             true
         );
     }
@@ -35,7 +35,7 @@ void UCRItemBuffSlot::CheckBuffDuration()
 {
     if (CachedDuration > 0)
     {
-        CachedDuration -= 1.0f;
+        CachedDuration -= 0.1f;
         if (CachedDuration <= 3.0f && !bIsBlinking)
         {
             StartBlinkAnimation();
