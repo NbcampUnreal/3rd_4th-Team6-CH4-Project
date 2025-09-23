@@ -14,6 +14,7 @@
 #include "InputMappingContext.h"
 #include "Character/Animation/CRAnimInstance.h"
 #include "GameMode/CRPlayerState.h"
+#include "GAS/Attribute/CRAttributeSet.h"
 
 ACRPlayerCharacter::ACRPlayerCharacter()
 	:	TargetArmLength(800.f),
@@ -47,6 +48,9 @@ ACRPlayerCharacter::ACRPlayerCharacter()
 
 }
 
+
+
+
 void ACRPlayerCharacter::PawnClientRestart()
 {
 	Super::PawnClientRestart();
@@ -72,6 +76,7 @@ void ACRPlayerCharacter::PossessedBy(AController* NewController)
 		if (ACRPlayerState* PS = GetPlayerState<ACRPlayerState>())
 		{
 			AbilitySystemComponent = Cast<UCRAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+			AttributeSet = PS->GetAttributeSet();
 			if (AbilitySystemComponent != nullptr)
 			{
 				AbilitySystemComponent->InitAbilityActorInfo(PS, this);
@@ -95,9 +100,11 @@ void ACRPlayerCharacter::OnRep_PlayerState()
 	if (ACRPlayerState* PS = GetPlayerState<ACRPlayerState>())
 	{
 		AbilitySystemComponent = Cast<UCRAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+		AttributeSet = PS->GetAttributeSet();
 		if (AbilitySystemComponent != nullptr)
 		{
 			AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+			const UCRAttributeSet* MyAttributeSet = AbilitySystemComponent->GetSet<UCRAttributeSet>();
 			BindingChangeDelegate();
 			if (UCRAnimInstance* AnimInstance = Cast<UCRAnimInstance>(GetMesh()->GetAnimInstance()))
 			{
@@ -112,6 +119,58 @@ void ACRPlayerCharacter::OnRep_PlayerState()
 	}
 }
 
+void ACRPlayerCharacter::BindingChangeDelegate()
+{
+	Super::BindingChangeDelegate();
+	GetCRAbilitySystemComponent()->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &ACRPlayerCharacter::OnEffectAdded);
+	GetCRAbilitySystemComponent()->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &ACRPlayerCharacter::OnGameplayEffectRemoved);
+}
+
+void ACRPlayerCharacter::OnEffectAdded(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& EffectSpec,
+	FActiveGameplayEffectHandle EffectHandle)
+{
+	FGameplayTagContainer GrantedTags;
+	EffectSpec.GetAllGrantedTags(GrantedTags);
+	float Duration = EffectSpec.GetDuration();
+	if (GrantedTags.Num() == 0)
+	{
+		return;
+	}
+	if (IsLocallyControlled())
+	{
+		ACRPlayerController* PC = Cast<ACRPlayerController>(GetController());
+		if (PC)
+		{
+			for (const FGameplayTag& Tag : GrantedTags)
+			{
+				PC->UpdateBuffUI(Tag, Duration);
+			}
+		}
+	}
+}
+
+void ACRPlayerCharacter::OnGameplayEffectRemoved(const FActiveGameplayEffect& ActiveEffect)
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	ACRPlayerController* PC = Cast<ACRPlayerController>(GetController());
+	if (!PC)
+	{
+		return;
+	}
+	
+	FGameplayTagContainer GrantedTags;
+	ActiveEffect.Spec.GetAllGrantedTags(GrantedTags);
+
+	for (const FGameplayTag& Tag : GrantedTags)
+	{
+	
+		PC->RemoveBuffUI(Tag);
+	}
+}
 
 #pragma  region Input
 void ACRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -226,6 +285,30 @@ void ACRPlayerCharacter::OnStun()
 	if (PC)
 	{
 		PC->SetIgnoreMoveInput(true);
+	}
+}
+
+void ACRPlayerCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	Super::UpdatedHealth(OnAttributeChangeData);
+
+	if (!IsLocallyControlled())
+		return;
+    float CurrentHealth = OnAttributeChangeData.NewValue;
+    float MaxHealth = AttributeSet->GetMaxHealth(); 
+
+	ACRPlayerController* PC = Cast<ACRPlayerController>(GetController());
+	if (PC)
+	{
+	    if (FMath::IsNearlyEqual(CurrentHealth, MaxHealth))
+	    {
+	    	PC->UpdateBuffUI(FGameplayTag::RequestGameplayTag("State.MaxHealth"),0);
+	    }
+	    else
+	    {
+	    	PC->RemoveBuffUI(FGameplayTag::RequestGameplayTag("State.MaxHealth"));
+	    }
+		
 	}
 }
 

@@ -8,6 +8,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "CRPlayerState.generated.h"
 
+class UCRAttributeSet;
 /**
  * 
  */
@@ -29,6 +30,8 @@ public:
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	UCRAttributeSet* GetAttributeSet()const {return AttributeSet; }
+	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	

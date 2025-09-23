@@ -6,10 +6,8 @@
 #include "Animation/CRAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/PlayerState.h"
 #include "GAS/CRAbilitySystemComponent.h"
 #include "GAS/GameplayTagsStatic.h"
-#include "GAS/Ability/CRGameplayAbility.h"
 #include "GAS/Attribute/CRAttributeSet.h"
 
 
@@ -116,12 +114,10 @@ void ACRCharacter::OnStunTagChanged(const FGameplayTag Tag, int32 NewCount)
 	if (NewCount != 0)
 	{
 		OnStun();
-	
 	}
 	else
 	{
 		RecoverStun();
-		
 	}
 	
 }
@@ -159,7 +155,7 @@ void ACRCharacter::OnDeath()
 
 void ACRCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData)
 {
-	if (!GetCRAbilitySystemComponent() && !HasAuthority())
+	if (!GetCRAbilitySystemComponent() || !HasAuthority())
 		return; 
 
 	UCRAbilitySystemComponent* ASC = GetCRAbilitySystemComponent();
@@ -171,9 +167,6 @@ void ACRCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChange
 			ASC->ApplyGameplayEffect(DeadEffect);
 		}
 	}
-
-
-        
 }
 
 

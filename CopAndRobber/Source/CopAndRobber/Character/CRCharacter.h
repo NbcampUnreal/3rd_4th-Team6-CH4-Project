@@ -43,7 +43,6 @@ protected:
 protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UCRAbilitySystemComponent> AbilitySystemComponent;
-
 	UPROPERTY(Transient)
 	TObjectPtr<UCRAttributeSet> AttributeSet;
 
@@ -55,7 +54,7 @@ protected:
 	virtual void OnStun();
 	virtual void RecoverStun();
 	virtual void OnDeath();
-	void UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData);
+	virtual void UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dead Effects")
 	TSubclassOf<UGameplayEffect> DeadEffect;

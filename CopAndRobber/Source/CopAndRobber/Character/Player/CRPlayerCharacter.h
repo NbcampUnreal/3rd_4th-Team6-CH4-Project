@@ -23,14 +23,20 @@ class COPANDROBBER_API ACRPlayerCharacter : public ACRCharacter, public IGeneric
 
 public:
 	ACRPlayerCharacter();
+	
+	UFUNCTION()
+	void OnEffectAdded(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle EffectHandle);
+	void OnGameplayEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
+	
+
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
 	virtual void PawnClientRestart() override;
-	virtual void  PossessedBy(AController* NewController) override;
+	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
-
+	virtual void BindingChangeDelegate() override;
 	virtual void OnStun() override;
+	virtual void UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData) override;
 
 	virtual void RecoverStun() override;
 	void OnDeath();

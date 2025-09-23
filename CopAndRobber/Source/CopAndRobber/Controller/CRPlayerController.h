@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffect.h"
 #include "GameFramework/PlayerController.h"
 #include "CRPlayerController.generated.h"
 
@@ -24,16 +25,15 @@ public:
 	void Client_SetupInput(UCRPlayerInputConfig* InPlayerInputConfig);
 
 	void JoinServer(const FString& Address, const FString& Nickname);
-	
-protected:
-	virtual void OnPossess(APawn* InPawn) override;
 
-	virtual void AcknowledgePossession(class APawn* P) override;
+
 
 
 protected:
 	virtual void BeginPlay() override;
 
+#pragma region UI
+	
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> TitleWidgetClass;
@@ -43,6 +43,10 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UCRBattleHUDWidget> BattleWidgetClass;
+public:
+	void UpdateBuffUI(const FGameplayTag& Tag, int Count);
+	void RemoveBuffUI(const FGameplayTag& Tag);
+	
 protected:
 	void ShowBattleHUD();
 	void BindingBattleHUD();
@@ -55,7 +59,5 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<UCRBattleHUDWidget> BattleWidgetInstance;
-
-
-
+#pragma endregion 
 };

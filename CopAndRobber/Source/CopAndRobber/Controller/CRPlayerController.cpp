@@ -6,6 +6,8 @@
 #include "InputMappingContext.h"
 #include "GameData/CRPlayerInputConfig.h"
 #include "Controller/CRPlayerController.h"
+
+#include "GameplayEffect.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/World.h"
 #include "GameMode/CRGameState.h"
@@ -28,16 +30,6 @@ void ACRPlayerController::Client_SetupInput_Implementation(UCRPlayerInputConfig*
 			Subsystem->AddMappingContext(InPlayerInputConfig->DefaultMappingContext, 0);
 		}
 	}
-}
-
-void ACRPlayerController::OnPossess(APawn* InPawn)
-{
-	Super::OnPossess(InPawn);
-}
-
-void ACRPlayerController::AcknowledgePossession(class APawn* P)
-{
-	Super::AcknowledgePossession(P);
 }
 
 void ACRPlayerController::BeginPlay()
@@ -100,6 +92,16 @@ void ACRPlayerController::BindingBattleHUD()
 	if (ACRGameState* GS = Cast<ACRGameState>(GetWorld()-> GetGameState()))
 	{
 		
+		GS->ZoneCountdownComponent->OnZoneCountingChanged.RemoveDynamic(
+			BattleWidgetInstance, 
+			&UCRBattleHUDWidget::SetUpRemainingTextBlock
+		);
+    
+		GS->ZoneCountdownComponent->OnZoneTimeChanged.RemoveDynamic(
+			BattleWidgetInstance, 
+			&UCRBattleHUDWidget::SetTimerRemaining
+		);
+		
 		GS->ZoneCountdownComponent->OnZoneCountingChanged.AddDynamic(
 			BattleWidgetInstance, 
 			&UCRBattleHUDWidget::SetUpRemainingTextBlock
@@ -109,7 +111,6 @@ void ACRPlayerController::BindingBattleHUD()
 			BattleWidgetInstance, 
 			&UCRBattleHUDWidget::SetTimerRemaining
 		);
-
 	}
 }
 
@@ -118,3 +119,20 @@ void ACRPlayerController::JoinServer(const FString& Address, const FString& Nick
 	FString Options = FString::Printf(TEXT("?Name=%s"), *Nickname);
 	UGameplayStatics::OpenLevel(GetWorld(), FName(*Address), true, Options);
 }
+
+void ACRPlayerController::UpdateBuffUI(const FGameplayTag& Tag, int Count)
+{
+	if (BattleWidgetInstance)
+	{
+		BattleWidgetInstance->UpdateBuffSlot(Tag, Count);
+	}
+}
+
+void ACRPlayerController::RemoveBuffUI(const FGameplayTag& Tag)
+{
+	if (BattleWidgetInstance)
+	{
+		BattleWidgetInstance->RemoveBuffSlot(Tag);
+	}
+}
+
