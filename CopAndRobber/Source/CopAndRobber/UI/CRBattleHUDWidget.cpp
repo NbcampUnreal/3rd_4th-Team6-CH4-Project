@@ -5,21 +5,17 @@
 
 #include "Components/TextBlock.h"
 
-void UCRBattleHUDWidget::InitializeSetupHUD(int32 SetTime, int32 SetAliveCount)
-{
-	CachedRemainingTime = SetTime;
-	SetTimerRemaining(SetTime);
-	UpdateAliveCountTextBlock(SetAliveCount);
 
-	GetWorld()->GetTimerManager().SetTimer(
-	   RemainTimerHandle,
-	   this,
-	   &ThisClass::CountDownTimerRemaining,
-	   1.f,   
-	   true
-   );
-	
-	
+void UCRBattleHUDWidget::SetUpRemainingTextBlock(bool bIsCounting)
+{
+	if (bIsCounting)
+	{
+		TimerTextBlock->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		TimerTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UCRBattleHUDWidget::SetTimerRemaining(int32 RemainingTime)
@@ -32,19 +28,6 @@ void UCRBattleHUDWidget::SetTimerRemaining(int32 RemainingTime)
 	FString TimeString = FString::Printf(TEXT("자기장 축소 %02d:%02d"), Minutes, Seconds);
 	FText TimeText = FText::FromString(TimeString);
 	TimerTextBlock->SetText(TimeText);
-}
-
-void UCRBattleHUDWidget::CountDownTimerRemaining()
-{
-	if (CachedRemainingTime > 0)
-	{
-		CachedRemainingTime --;
-		SetTimerRemaining(CachedRemainingTime);
-	}
-	else
-	{
-		GetWorld()->GetTimerManager().ClearTimer(RemainTimerHandle);
-	}
 }
 
 void UCRBattleHUDWidget::UpdateAliveCountTextBlock(int32 AliveCount)

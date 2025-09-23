@@ -45,6 +45,7 @@ public:
 	TSubclassOf<UCRBattleHUDWidget> BattleWidgetClass;
 protected:
 	void ShowBattleHUD();
+	void BindingBattleHUD();
 private:
 	UPROPERTY()
 	TObjectPtr<UUserWidget> TitleWidgetInstance;

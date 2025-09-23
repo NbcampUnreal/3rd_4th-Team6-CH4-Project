@@ -15,13 +15,14 @@ class COPANDROBBER_API UCRBattleHUDWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-
-	void InitializeSetupHUD(int32 SetTime, int32 SetAliveCount);
+	UFUNCTION()
+	void SetUpRemainingTextBlock(bool bIsCounting);
+	UFUNCTION()
 	void SetTimerRemaining(int32 RemainingTime);
+	UFUNCTION()
 	void UpdateAliveCountTextBlock(int32 AliveCount);
 	
-protected:
-	void CountDownTimerRemaining();
+
 	
 private:
 

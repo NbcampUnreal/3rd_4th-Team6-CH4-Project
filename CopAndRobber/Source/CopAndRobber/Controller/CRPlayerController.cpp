@@ -8,6 +8,8 @@
 #include "Controller/CRPlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/World.h"
+#include "GameMode/CRGameState.h"
+#include "Gimmick/BlueZone/CRZoneCountdownComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/CRBattleHUDWidget.h"
 
@@ -88,9 +90,26 @@ void ACRPlayerController::ShowBattleHUD()
 		if (BattleWidgetInstance)
 		{
 			BattleWidgetInstance->AddToViewport();
-			BattleWidgetInstance->InitializeSetupHUD(180,1);
-			
+			BindingBattleHUD();
 		}
+	}
+}
+
+void ACRPlayerController::BindingBattleHUD()
+{
+	if (ACRGameState* GS = Cast<ACRGameState>(GetWorld()-> GetGameState()))
+	{
+		
+		GS->ZoneCountdownComponent->OnZoneCountingChanged.AddDynamic(
+			BattleWidgetInstance, 
+			&UCRBattleHUDWidget::SetUpRemainingTextBlock
+		);
+		
+		GS->ZoneCountdownComponent->OnZoneTimeChanged.AddDynamic(
+			BattleWidgetInstance, 
+			&UCRBattleHUDWidget::SetTimerRemaining
+		);
+
 	}
 }
 
