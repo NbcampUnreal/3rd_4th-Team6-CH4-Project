@@ -46,6 +46,14 @@ void ACRItemBase::PlayPickUpSound_Implementation(FVector Loc)
 	}
 }
 
+void ACRItemBase::PlayActivateSound_Implementation(FVector Loc)
+{
+	if (ActivateSound && GetNetMode() != NM_DedicatedServer)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ActivateSound, Loc);
+	}
+}
+
 void ACRItemBase::OnRep_Picked()
 {
 	ApplyPickedVisuals(bPicked);
@@ -93,16 +101,22 @@ void ACRItemBase::ApplyPickedVisuals(bool bHide)
 
 void ACRItemBase::Activate(AActor* Player)
 {
-	if (PickupSound)
+	if (APawn* Pawn = Cast<APawn>(Player))
 	{
-		if (APawn* Pawn = Cast<APawn>(Player))
+		if (APlayerController* PC = Cast<APlayerController>(Pawn->GetController()))
 		{
-			if (APlayerController* PC = Cast<APlayerController>(Pawn->GetController()))
+			if (PickupSound)
 			{
 				PC->ClientPlaySound(PickupSound);
+				PlayPickUpSound(Player->GetActorLocation());
+			}
+			if (ActivateSound)
+			{
+				PC->ClientPlaySound(ActivateSound);
+				PlayActivateSound(Player->GetActorLocation());
 			}
 		}
-		PlayPickUpSound(Player->GetActorLocation());
 	}
 }
+
 

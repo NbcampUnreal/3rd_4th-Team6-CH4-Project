@@ -22,6 +22,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Sound")
 	USoundBase* PickupSound;
+	UPROPERTY(EditAnywhere, Category="Sound")
+	USoundBase* ActivateSound;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
 	float Duration = 0.f;
@@ -53,4 +55,6 @@ public:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayPickUpSound(FVector Loc);
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayActivateSound(FVector Loc);
 };
