@@ -44,9 +44,12 @@ protected:
 	bool CanSpawnItem() const;
 	void CleanSpawnedItemPtr();
 	ACRItemBase* SpawnItem();
-	FVector PickPointInBox() const;
 	TSubclassOf<ACRItemBase> PickItemClass() const;
 
 	UFUNCTION()
 	void OnItemDestroyed(AActor* Dead);
+
+private:
+	bool FindGroundedLocation(const FVector& XY, FHitResult& OutHit) const;
+	float GetItemHalfHeight(TSubclassOf<ACRItemBase> ItemClass) const;
 };

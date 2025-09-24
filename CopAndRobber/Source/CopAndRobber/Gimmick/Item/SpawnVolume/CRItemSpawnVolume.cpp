@@ -6,6 +6,9 @@
 #include "Gimmick/Item/Base/CRItemBase.h"
 #include "Kismet/KismetMathLibrary.h"
 
+static const float TraceUp   = 3000.f;
+static const float TraceDown = 6000.f;
+
 ACRItemSpawnVolume::ACRItemSpawnVolume()
 {
 	Box = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
@@ -87,11 +90,25 @@ ACRItemBase* ACRItemSpawnVolume::SpawnItem()
 	TSubclassOf<ACRItemBase> ItemClass = PickItemClass();
 	if (!*ItemClass) return nullptr;
 
-	const FVector Location = PickPointInBox();
+	const FVector Center = Box->GetComponentLocation();
+	const FVector Extent = Box->GetScaledBoxExtent();
+	const FVector RandLocal = UKismetMathLibrary::RandomPointInBoundingBox(FVector::ZeroVector, Extent);
+	const FVector XY = Center + FVector(RandLocal.X, RandLocal.Y, 0.f);
+	
+	FHitResult Hit;
+	if (!FindGroundedLocation(XY, Hit)) return nullptr;
+
+	const float HalfHeight = GetItemHalfHeight(ItemClass);
+	const float SmallLift = 2.f;
+	const FVector PlaceLoc = Hit.ImpactPoint + Hit.ImpactNormal * (HalfHeight + SmallLift);
+
+	const FRotator Rot = FRotator::ZeroRotator;
+	const FTransform SpawnXf(Rot, PlaceLoc);
+	
 	FActorSpawnParameters P;
 	P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	ACRItemBase* Item = GetWorld()->SpawnActor<ACRItemBase>(ItemClass, Location, FRotator::ZeroRotator, P);
+	ACRItemBase* Item = GetWorld()->SpawnActor<ACRItemBase>(ItemClass, SpawnXf, P);
 	
 	if (Item)
 	{
@@ -99,11 +116,6 @@ ACRItemBase* ACRItemSpawnVolume::SpawnItem()
 		Item->OnDestroyed.AddDynamic(this, &ACRItemSpawnVolume::OnItemDestroyed);
 	}
 	return Item;
-}
-
-FVector ACRItemSpawnVolume::PickPointInBox() const
-{
-	return UKismetMathLibrary::RandomPointInBoundingBox(Box->GetComponentLocation(), Box->GetScaledBoxExtent());
 }
 
 TSubclassOf<ACRItemBase> ACRItemSpawnVolume::PickItemClass() const
@@ -140,3 +152,25 @@ void ACRItemSpawnVolume::OnItemDestroyed(AActor* Dead)
 	}
 }
 
+bool ACRItemSpawnVolume::FindGroundedLocation(const FVector& XY, FHitResult& OutHit) const
+{
+	const FVector Start = XY + FVector(0, 0, TraceUp);
+	const FVector End = XY - FVector(0, 0, TraceDown);
+
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemGroundTrace), false);
+	Params.AddIgnoredActor(this);
+
+	return GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_WorldStatic, Params);
+}
+
+float ACRItemSpawnVolume::GetItemHalfHeight(TSubclassOf<ACRItemBase> ItemClass) const
+{
+	if (!*ItemClass) return 50.f;
+
+	if (const ACRItemBase* CDO = Cast<ACRItemBase>(ItemClass->GetDefaultObject()))
+	{
+		const FBox Bounds =CDO->GetComponentsBoundingBox(true);
+		if (Bounds.IsValid) return Bounds.GetExtent().Z;
+	}
+	return 50.f;
+}
