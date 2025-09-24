@@ -17,8 +17,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Reveal")
 	int RevealStencil = 250;
 
-	virtual bool OnActive_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters) override;
-	virtual bool OnRemove_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters) override;
+	virtual bool OnActive_Implementation(AActor* Target, const FGameplayCueParameters& Parameters) override;
+	virtual bool OnRemove_Implementation(AActor* Target, const FGameplayCueParameters& Parameters) override;
 
 private:
 	mutable TSet<TWeakObjectPtr<AActor>> OutlinedActors;

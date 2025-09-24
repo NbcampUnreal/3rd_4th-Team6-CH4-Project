@@ -1,6 +1,6 @@
 //GCN_CRReveal.cpp
 
-#include "Gimmick/Item/Reveal/GCN_CRReveal.h"
+#include "GCN_CRReveal.h"
 #include "EngineUtils.h"
 
 AGCN_CRReveal::AGCN_CRReveal()
@@ -11,14 +11,18 @@ AGCN_CRReveal::AGCN_CRReveal()
 	bAutoAttachToOwner = true;
 }
 
-bool AGCN_CRReveal::OnActive_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
+bool AGCN_CRReveal::OnActive_Implementation(AActor* Target, const FGameplayCueParameters& Parameters)
 {
-	ApplyRevealForLocal(MyTarget);
+	if (!Target) return false;
+	
+    ApplyRevealForLocal(Target);
 	return true;
 }
 
-bool AGCN_CRReveal::OnRemove_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
+bool AGCN_CRReveal::OnRemove_Implementation(AActor* Target, const FGameplayCueParameters& Parameters)
 {
+	if (!Target) return false;
+	
 	ClearRevealForLocal();
 	return true;
 }
@@ -26,11 +30,11 @@ bool AGCN_CRReveal::OnRemove_Implementation(AActor* MyTarget, const FGameplayCue
 void AGCN_CRReveal::ApplyRevealForLocal(AActor* Target) const
 {
 	if (!Target) return;
-
+	
 	APawn* Pawn = Cast<APawn>(Target);
 	AController* LocalCtrl = Pawn ? Pawn->GetController() : nullptr;
 
-	if (!LocalCtrl || !LocalCtrl->IsPlayerController()) return;
+	if (!LocalCtrl || !LocalCtrl->IsLocalController()) return;
 
 	UWorld* World = Target->GetWorld();
 	if (!World) return;
@@ -99,9 +103,10 @@ bool AGCN_CRReveal::IsOtherPlayer(AActor* Actor, const AController* LocalCtrl) c
 {
 	const APawn* P = Cast<APawn>(Actor);
 	if (!P) return false;
+	
+	const APlayerState* PS = P->GetPlayerState();
+	if (!PS) return false;
 
-	const AController* C = P->GetController();
-	if (!C || !C->IsPlayerController()) return false;
-
-	return (C != LocalCtrl);
+	const APawn* LocalPawn = LocalCtrl ? LocalCtrl->GetPawn() : nullptr;
+	return P != LocalPawn;
 }
