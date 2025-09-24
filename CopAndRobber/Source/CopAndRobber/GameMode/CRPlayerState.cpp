@@ -1,7 +1,12 @@
 #include "GameMode/CRPlayerState.h"
+
+#include "CRGameMode.h"
 #include "GAS/CRAbilitySystemComponent.h"
 #include "GAS/Attribute/CRAttributeSet.h"
 #include "Net/UnrealNetwork.h"
+#include "UI/CRLobbyWidget.h"
+#include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 ACRPlayerState::ACRPlayerState()
 {
@@ -25,7 +30,7 @@ void ACRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	FDoRepLifetimeParams SharedParams;
 	
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, MyTeamID, SharedParams);
-	
+	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, bIsReady, SharedParams);
 }
 
 
@@ -39,3 +44,28 @@ FGenericTeamId ACRPlayerState::GetGenericTeamId() const
 {
 	return MyTeamID;
 }
+
+void ACRPlayerState::OnRep_bIsReady()
+{
+	UE_LOG(LogTemp, Log, TEXT(" OnRep_bIsReady: %s → %s"), *GetPlayerName(), bIsReady ? TEXT("준비됨") : TEXT("대기 중"));
+
+	TArray<UUserWidget*> FoundWidgets;
+	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), FoundWidgets, UCRLobbyWidget::StaticClass(), false);
+
+	for (UUserWidget* Widget : FoundWidgets)
+	{
+		if (UCRLobbyWidget* LobbyWidget = Cast<UCRLobbyWidget>(Widget))
+		{
+			LobbyWidget->RefreshPlayerList();
+		}
+	}
+	
+	if (HasAuthority())
+	{
+		if (ACRGameMode* GM = GetWorld()->GetAuthGameMode<ACRGameMode>())
+		{
+			GM->CheckAllPlayersReady();
+		}
+	}
+}
+

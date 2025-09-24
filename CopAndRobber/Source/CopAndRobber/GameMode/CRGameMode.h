@@ -14,6 +14,7 @@ class COPANDROBBER_API ACRGameMode : public AGameMode
 public:
 	ACRGameMode();
 
+	void CheckAllPlayersReady();
 protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void RestartPlayer(AController* NewPlayer) override;

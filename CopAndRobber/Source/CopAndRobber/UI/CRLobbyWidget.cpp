@@ -1,85 +1,76 @@
-#include "UI/CRLobbyWidget.h"
+// CRLobbyWidget.cpp
+
+#include "CRLobbyWidget.h"
 #include "Components/TextBlock.h"
-#include "Components/Button.h"
+#include "Components/ScrollBox.h"
+#include "UI/CRLobbyPlayerEntry.h"
 #include "GameFramework/GameStateBase.h"
-#include "Engine/World.h"
-#include "TimerManager.h"
-#include "GameMode/CRPlayerState.h"
-#include "Controller/CRPlayerController.h"
-#include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h"
 
 void UCRLobbyWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (ReadyButton)
-	{
-		ReadyButton->OnClicked.AddDynamic(this, &UCRLobbyWidget::OnClickReady);
-	}
+	GetWorld()->GetTimerManager().SetTimer(
+		RefreshTimerHandle,
+		this,
+		&UCRLobbyWidget::RefreshPlayerList,
+		0.2f, // 0.2초 간격
+		true  // 반복
+	);
 
-	// 1초 주기 갱신
-	if (UWorld* W = GetWorld())
-	{
-		W->GetTimerManager().SetTimer(RefreshTimer, this, &UCRLobbyWidget::RefreshPlayerCount, 1.0f, true);
-	}
-
-	RefreshPlayerCount();
-	RefreshReadyText();
-}
-
-void UCRLobbyWidget::NativeDestruct()
-{
-	if (UWorld* W = GetWorld())
-	{
-		W->GetTimerManager().ClearTimer(RefreshTimer);
-	}
-	Super::NativeDestruct();
-}
-
-void UCRLobbyWidget::OnClickReady()
-{
-	if (APlayerController* PC = GetOwningPlayer())
-	{
-		//if (ACRPlayerState* PS = PC->GetPlayerState<ACRPlayerState>())
-		//{
-			//const bool bNew = !PS->IsReady();
-			// 서버로 내 Ready 상태 전송
-			//if (ACRPlayerController* CRPC = Cast<ACRPlayerController>(PC))
-			//{
-			//	CRPC->ServerSetReady(bNew);
-			//}
-		//}
-	}
-}
-
-
-void UCRLobbyWidget::RefreshPlayerCount()
-{
-	int32 Count = 1;
-	if (UWorld* W = GetWorld())
-	{
-		if (AGameStateBase* GS = W->GetGameState())
+	// 2초 후에 타이머 종료
+	FTimerHandle StopTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		StopTimerHandle,
+		[this]()
 		{
-			Count = GS->PlayerArray.Num();
-		}
-	}
-	if (PlayerCountText)
-	{
-		PlayerCountText->SetText(FText::AsNumber(Count));
-	}
-	RefreshReadyText();
+			GetWorld()->GetTimerManager().ClearTimer(RefreshTimerHandle);
+		},
+		2.0f, // 총 2초 동안만 반복
+		false
+	);
 }
 
-void UCRLobbyWidget::RefreshReadyText()
+
+void UCRLobbyWidget::RefreshPlayerList()
 {
-	FText T = FText::FromString(TEXT("Not Ready"));
-	if (APlayerController* PC = GetOwningPlayer())
+	if (!ScrollBox_PlayerList)
 	{
-		//if (ACRPlayerState* PS = PC->GetPlayerState<ACRPlayerState>())
-		//{
-		//	T = PS->IsReady() ? FText::FromString(TEXT("Ready")) : FText::FromString(TEXT("Not Ready"));
-		//}
+		return;
 	}
-	if (ReadyStateText) ReadyStateText->SetText(T);
-}
 
+	if (!LobbyPlayerEntryClass)
+	{
+		return;
+	}
+
+	ScrollBox_PlayerList->ClearChildren();
+
+	AGameStateBase* GameState = GetWorld()->GetGameState();
+	if (!GameState)
+	{
+		return;
+	}
+
+	const TArray<APlayerState*>& Players = GameState->PlayerArray;
+	
+
+	if (TextBlock_PlayerCount)
+	{
+		TextBlock_PlayerCount->SetText(FText::FromString(
+			FString::Printf(TEXT("접속 인원: %d명"), Players.Num())
+		));
+	}
+
+	for (APlayerState* PlayerState : Players)
+	{
+		UCRLobbyPlayerEntry* PlayerEntry = CreateWidget<UCRLobbyPlayerEntry>(this, LobbyPlayerEntryClass);
+		if (!PlayerEntry)
+		{
+			continue;
+		}
+		PlayerEntry->Init(PlayerState);
+		ScrollBox_PlayerList->AddChild(PlayerEntry);
+	}
+}

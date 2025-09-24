@@ -1,3 +1,4 @@
+// CRLobbyWidget.h
 #pragma once
 
 #include "CoreMinimal.h"
@@ -5,30 +6,29 @@
 #include "CRLobbyWidget.generated.h"
 
 class UTextBlock;
-class UButton;
+class UScrollBox;
+class UCRLobbyPlayerEntry;
 
 UCLASS()
 class COPANDROBBER_API UCRLobbyWidget : public UUserWidget
 {
 	GENERATED_BODY()
-protected:
+
+public:
 	virtual void NativeConstruct() override;
-	virtual void NativeDestruct() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional, AllowPrivateAccess="true"))
-	TObjectPtr<UTextBlock> PlayerCountText;
+	UFUNCTION(BlueprintCallable)
+	void RefreshPlayerList();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional, AllowPrivateAccess="true"))
-	TObjectPtr<UTextBlock> ReadyStateText;
+	FTimerHandle RefreshTimerHandle;
+	
+protected:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> TextBlock_PlayerCount;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional, AllowPrivateAccess="true"))
-	TObjectPtr<UButton> ReadyButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UScrollBox> ScrollBox_PlayerList;
 
-private:
-	FTimerHandle RefreshTimer;
-
-	UFUNCTION() void OnClickReady();
-
-	void RefreshPlayerCount();
-	void RefreshReadyText();
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Lobby", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UCRLobbyPlayerEntry> LobbyPlayerEntryClass;
 };

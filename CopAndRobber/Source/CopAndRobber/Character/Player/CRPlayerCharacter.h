@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -63,6 +63,7 @@ protected:
 protected:
 	void HandleMoveAction(const FInputActionValue& Value);
 	void HandleLookAction(const FInputActionValue& Value);
+	void HandleReadyAction(const FInputActionValue& Value);
 	void HandleInteractAction(const FInputActionValue& Value);
 	
 	void HandleAbilityPressedAction(const FInputActionValue& Value, ECRAbilityInputID Key);

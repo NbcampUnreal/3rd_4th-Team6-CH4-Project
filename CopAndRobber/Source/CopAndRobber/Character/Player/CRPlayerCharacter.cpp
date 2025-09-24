@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/Player/CRPlayerCharacter.h"
@@ -193,6 +193,7 @@ void ACRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		//ETC->BindAction()
 		ETC->BindAction(PlayerInputConfig->MoveAction,ETriggerEvent::Triggered,this,&ACRPlayerCharacter::HandleMoveAction);
 		ETC->BindAction(PlayerInputConfig->LookAction,ETriggerEvent::Triggered,this,&ACRPlayerCharacter::HandleLookAction);
+		ETC->BindAction(PlayerInputConfig->ReadyAction, ETriggerEvent::Triggered, this, &ACRPlayerCharacter::HandleReadyAction);	
 		ETC->BindAction(PlayerInputConfig->InteractAction, ETriggerEvent::Triggered, this, &ACRPlayerCharacter::HandleInteractAction);
 		
 		if (PlayerInputConfig->GameplayAbilityInputActions.Num() > 0)
@@ -225,7 +226,6 @@ void ACRPlayerCharacter::HandleMoveAction(const FInputActionValue& Value)
 	
 }
 
-
 void ACRPlayerCharacter::HandleLookAction(const FInputActionValue& Value)
 {
 	FVector2D Direction = Value.Get<FVector2D>();
@@ -251,6 +251,14 @@ void ACRPlayerCharacter::HandleInteractAction(const FInputActionValue& Value)
 		{
 			ServerInteractDoor(Door);
 		}
+	}
+}
+
+void ACRPlayerCharacter::HandleReadyAction(const FInputActionValue& Value)
+{
+	if (ACRPlayerController* CRPC = Cast<ACRPlayerController>(GetController()))
+	{
+		CRPC->Server_ToggleReady(); // ← 서버에서 PlayerState->bIsReady 토글
 	}
 }
 

@@ -1,4 +1,4 @@
-#include "GameMode/CRGameMode.h"
+﻿#include "GameMode/CRGameMode.h"
 #include "GameMode/CRGameState.h"
 #include "Gimmick/BlueZone/CRZoneCountdownComponent.h"
 #include "GameMode/CRPlayerState.h"
@@ -9,6 +9,7 @@
 #include "AI/AISpawner/CRAISpawner.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
 
 ACRGameMode::ACRGameMode()
 {
@@ -30,11 +31,6 @@ void ACRGameMode::PostLogin(APlayerController* NewPlayer)
 	if (CRGameState)
 	{
 		CRGameState->NumPlayers++;
-		
-		if (CRGameState->NumPlayers >= MinPlayersToStart && CRGameState->GamePhase == EGamePhase::WaitingForPlayers)
-		{
-			BeginGame();
-		}
 	}
 }
 
@@ -136,6 +132,23 @@ void ACRGameMode::RestartPlayer(AController* NewPlayer)
 
 void ACRGameMode::BeginGame()
 {
+	if (!CRGameState || CRGameState->GamePhase != EGamePhase::WaitingForPlayers)
+	{
+		return;
+	}
+
+	// ✅ [1] GamePhase 먼저 바꿔서 중복 방지
+	CRGameState->GamePhase = EGamePhase::GameInProgress;
+	
+	// ✅ [2] ServerTravel 먼저
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		const FString NextMap = TEXT("/Game/Map/MainLevel?listen");
+		UE_LOG(LogTemp, Warning, TEXT("[GameMode] ServerTravel to: %s"), *NextMap);
+		World->ServerTravel(NextMap, true);
+	}
+		
 	if (CRGameState)
 	{
 		CRGameState->GamePhase = EGamePhase::GameInProgress;
@@ -149,8 +162,6 @@ void ACRGameMode::BeginGame()
 
 	if (AISpawnerClass)
 	{
-		UWorld* World = GetWorld();
-		if (World)
 		{
 			ACRAISpawner* AISpawner = World->SpawnActor<ACRAISpawner>(AISpawnerClass, FVector::ZeroVector, FRotator::ZeroRotator);
 			if (AISpawner)
@@ -158,5 +169,45 @@ void ACRGameMode::BeginGame()
 				AISpawner->SpawnAllAI();
 			}
 		}
+	}
+}
+
+void ACRGameMode::CheckAllPlayersReady()
+{
+	if (!CRGameState || CRGameState->GamePhase != EGamePhase::WaitingForPlayers)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[GameMode] Not in waiting phase."));
+		return;
+	}
+
+	const TArray<APlayerState*>& Players = GameState->PlayerArray;
+
+	int32 ReadyCount = 0;
+
+	for (APlayerState* PS : Players)
+	{
+		ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS);
+		if (!CRPS)
+			continue;
+		
+		if (CRPS->bIsReady)
+		{
+			ReadyCount++;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[GameMode] Player %s is not ready."), *PS->GetPlayerName());
+			return;	
+		}
+	}
+
+	if (ReadyCount >= MinPlayersToStart)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[GameMode] All players are ready. Starting game!"));
+		BeginGame();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[GameMode] Ready players: %d, but need at least %d"), ReadyCount, MinPlayersToStart);
 	}
 }

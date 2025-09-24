@@ -32,6 +32,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = InputAction)
 	TMap<ECRAbilityInputID, UInputAction*> GameplayAbilityInputActions;
 
+	UPROPERTY(EditDefaultsOnly, Category = InputAction)
+	TObjectPtr<UInputAction> ReadyAction;
 	
 	UPROPERTY(EditDefaultsOnly, Category = InputMappingContext)
 	TObjectPtr<UInputMappingContext> DefaultMappingContext;

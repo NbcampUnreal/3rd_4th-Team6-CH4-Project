@@ -33,7 +33,9 @@ public:
 	UCRAttributeSet* GetAttributeSet()const {return AttributeSet; }
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-	
+	//준비 상태
+	UPROPERTY(ReplicatedUsing = OnRep_bIsReady)
+	bool bIsReady = false;
 	
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "GAS")
@@ -44,5 +46,8 @@ protected:
 
 	UPROPERTY(Replicated)
 	FGenericTeamId MyTeamID;
+
+	UFUNCTION()
+	void OnRep_bIsReady();
 	
 };

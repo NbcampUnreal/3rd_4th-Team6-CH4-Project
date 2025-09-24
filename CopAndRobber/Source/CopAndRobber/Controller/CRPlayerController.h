@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -10,9 +10,7 @@
 
 class UCRBattleHUDWidget;
 class UUserWidget;
-/**
- * 
- */
+class UCRLobbyWidget;
 class UCRPlayerInputConfig;
 
 UCLASS()
@@ -46,18 +44,24 @@ public:
 public:
 	void UpdateBuffUI(const FGameplayTag& Tag, int Count);
 	void RemoveBuffUI(const FGameplayTag& Tag);
+
+	UFUNCTION(Server, Reliable)
+	void Server_ToggleReady();
+	UFUNCTION(Server, Reliable)
+	void Server_SetNickname(const FString& NewNickname);
 	
 protected:
 	void ShowBattleHUD();
 	void BindingBattleHUD();
+
 private:
 	UPROPERTY()
 	TObjectPtr<UUserWidget> TitleWidgetInstance;
-
 	UPROPERTY()
-	TObjectPtr<UUserWidget> LobbyWidgetInstance;
-	
+	TObjectPtr<UCRLobbyWidget> LobbyWidgetInstance;
 	UPROPERTY()
 	TObjectPtr<UCRBattleHUDWidget> BattleWidgetInstance;
-#pragma endregion 
+#pragma endregion
+
+	FString PendingNickname;
 };
