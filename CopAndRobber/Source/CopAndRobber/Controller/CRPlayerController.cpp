@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Controller/CRPlayerController.h"
@@ -9,17 +9,13 @@
 
 #include "GameplayEffect.h"
 #include "Blueprint/UserWidget.h"
-#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Engine/World.h"
 #include "GameMode/CRGameState.h"
 #include "Gimmick/BlueZone/CRZoneCountdownComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/CRBattleHUDWidget.h"
-#include "UI/CRLobbyWidget.h"
-#include "GameFramework/PlayerState.h"
-#include "GameMode/CRGameMode.h"
-#include "GameMode/CRPlayerState.h"
-#include "UI/CRBattleHUDWidget.h"
+#include "UI/CRPlayerResultWidget.h"
+
 
 void ACRPlayerController::Client_SetupInput_Implementation(UCRPlayerInputConfig* InPlayerInputConfig)
 {
@@ -44,12 +40,6 @@ void ACRPlayerController::BeginPlay()
 		{
 			FString MapName = GetWorld()->GetMapName();
 
-			if (!MapName.Contains(TEXT("TestLobbyLevel")) && LobbyWidgetInstance)
-			{
-				LobbyWidgetInstance->RemoveFromParent();
-				LobbyWidgetInstance = nullptr;
-			}
-			
 			if (MapName.Contains(TEXT("TestTitleLevel")))
 				{	
 				if (TitleWidgetClass)
@@ -57,8 +47,6 @@ void ACRPlayerController::BeginPlay()
 						TitleWidgetInstance = CreateWidget<UUserWidget>(this, TitleWidgetClass);
 						if (TitleWidgetInstance)
 						{
-							TitleWidgetInstance->SetIsFocusable(true);
-							
 							TitleWidgetInstance->AddToViewport();
 			
 							FInputModeUIOnly InputMode;
@@ -68,18 +56,17 @@ void ACRPlayerController::BeginPlay()
 							bShowMouseCursor = true;
 						}
 					}
-				} //로비
-			else if (MapName.Contains(TEXT("TestLobbyLevel")))
-			{
-				if (LobbyWidgetClass)
-				{
-					LobbyWidgetInstance = CreateWidget<UCRLobbyWidget>(this, LobbyWidgetClass);
-					if (LobbyWidgetInstance)
-					{
-						LobbyWidgetInstance->AddToViewport();
-						LobbyWidgetInstance->RefreshPlayerList();
-					}
 				}
+			else
+				{
+					if (LobbyWidgetClass)
+						{
+							LobbyWidgetInstance = CreateWidget<UUserWidget>(this, LobbyWidgetClass);
+							if (LobbyWidgetInstance)
+							{
+								LobbyWidgetInstance->AddToViewport();
+							}
+						}
 					SetInputMode(FInputModeGameOnly());
 					bShowMouseCursor = false;
 				}
@@ -97,6 +84,18 @@ void ACRPlayerController::ShowBattleHUD()
 		{
 			BattleWidgetInstance->AddToViewport();
 			BindingBattleHUD();
+		}
+	}
+}
+
+void ACRPlayerController::ShowReusultHUD()
+{
+	if (ResultWidgetClass && IsLocalController())
+	{
+		ResultWidgetInstance = CreateWidget<UCRPlayerResultWidget>(this, ResultWidgetClass);
+		if (ResultWidgetInstance)
+		{
+			ResultWidgetInstance->AddToViewport();
 		}
 	}
 }
@@ -126,45 +125,12 @@ void ACRPlayerController::BindingBattleHUD()
 			&UCRBattleHUDWidget::SetTimerRemaining
 		);
 	}
-		if (!HasAuthority() && !PendingNickname.IsEmpty())
-		{
-			Server_SetNickname(PendingNickname);
-		}
-		
 }
 
 void ACRPlayerController::JoinServer(const FString& Address, const FString& Nickname)
 {
-	PendingNickname = Nickname;
-	
 	FString Options = FString::Printf(TEXT("?Name=%s"), *Nickname);
 	UGameplayStatics::OpenLevel(GetWorld(), FName(*Address), true, Options);
-}
-
-void ACRPlayerController::Server_SetNickname_Implementation(const FString& NewNickname)
-{
-	if (APlayerState* PS = GetPlayerState<APlayerState>())
-	{
-		PS->SetPlayerName(NewNickname);
-		UE_LOG(LogTemp, Log, TEXT("서버에서 닉네임 설정됨: %s"), *NewNickname);
-	}
-}
-
-void ACRPlayerController::Server_ToggleReady_Implementation()
-{
-	if (ACRPlayerState* CRPS = GetPlayerState<ACRPlayerState>())
-	{
-		CRPS->bIsReady = !CRPS->bIsReady;
-
-		UE_LOG(LogTemp, Warning, TEXT("[SERVER] %s is now %s"),
-			*CRPS->GetPlayerName(),
-			CRPS->bIsReady ? TEXT("READY") : TEXT("NOT READY"));
-
-		if (ACRGameMode* GM = GetWorld()->GetAuthGameMode<ACRGameMode>())
-		{
-			GM->CheckAllPlayersReady();
-		}
-	}
 }
 
 void ACRPlayerController::UpdateBuffUI(const FGameplayTag& Tag, int Count)

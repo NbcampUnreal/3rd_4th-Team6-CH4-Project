@@ -345,6 +345,7 @@ void ACRPlayerCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttribute
 	    	PC->RemoveBuffUI(FGameplayTag::RequestGameplayTag("State.MaxHealth"));
 	    }
 		
+
 	}
 }
 
@@ -361,9 +362,14 @@ void ACRPlayerCharacter::RecoverStun()
 void ACRPlayerCharacter::OnDeath()
 {
 	Super::OnDeath();
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC)
+	if (IsLocallyControlled())
 	{
-		PC->SetIgnoreMoveInput(false);
+		ACRPlayerController* PC = Cast<ACRPlayerController>(GetController());
+		if (PC)
+		{
+			PC->SetIgnoreMoveInput(true);
+			PC->ShowReusultHUD();
+		}
 	}
+
 }

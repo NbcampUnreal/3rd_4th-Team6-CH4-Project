@@ -56,8 +56,9 @@ protected:
 	virtual void OnDeath();
 	virtual void UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Dead Effects")
-	TSubclassOf<UGameplayEffect> DeadEffect;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> DeathEffect;
 #pragma endregion
 
 

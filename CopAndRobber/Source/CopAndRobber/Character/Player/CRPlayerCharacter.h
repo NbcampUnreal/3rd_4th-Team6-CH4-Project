@@ -40,7 +40,7 @@ protected:
 	virtual void UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData) override;
 
 	virtual void RecoverStun() override;
-	void OnDeath();
+	virtual void OnDeath()override;
 
 
 #pragma region Camera Setting

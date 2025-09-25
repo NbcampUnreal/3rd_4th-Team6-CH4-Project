@@ -17,16 +17,17 @@ class COPANDROBBER_API UGAP_Death : public UCRGameplayAbility
 public:
 	UGAP_Death();
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	UFUNCTION()
 	void EndDeathAbility();
 
 protected:
-	
-	
 
 	UPROPERTY(EditDefaultsOnly, Category = "Time")
 	float DeathTime;
 	
-	FTimerHandle DeathTimerHandle; 
+	FTimerHandle DeathTimerHandle;
+	
 	
 
 };

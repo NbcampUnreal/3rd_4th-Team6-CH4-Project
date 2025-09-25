@@ -23,6 +23,7 @@ public:
 	void GiveInitialAbilities();
 	void ApplyGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int level = 1);
 	void RemoveAllAbilities();
+	void RemoveAbilities();
 
 private:
 	

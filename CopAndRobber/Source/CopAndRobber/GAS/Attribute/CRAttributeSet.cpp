@@ -3,12 +3,15 @@
 
 #include "GAS/Attribute/CRAttributeSet.h"
 #include "GameplayEffectExtension.h"
+#include "GAS/CRAbilitySystemComponent.h"
+#include "GAS/GameplayTagsStatic.h"
+#include "GAS/Ability/Character/GAP_Death.h"
 #include "Net/UnrealNetwork.h"
 
 UCRAttributeSet::UCRAttributeSet()
 {
 	InitHealth(1.0f);
-	InitMaxHealth(3.0f);
+	InitMaxHealth(2.0f);
 	InitSpeed(300.0f);
 	InitMaxSpeed(600.0f);
 }

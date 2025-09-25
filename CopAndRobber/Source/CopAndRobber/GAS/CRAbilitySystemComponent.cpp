@@ -61,20 +61,16 @@ void UCRAbilitySystemComponent::ApplyGameplayEffect(TSubclassOf<UGameplayEffect>
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingSpec(GameplayEffect, level, MakeEffectContext());
 	ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
 }
+
 void UCRAbilitySystemComponent::RemoveAllAbilities()
 {
-	if (!GetOwner() || !GetOwner()->HasAuthority())
-		return;
 
 	TArray<FGameplayAbilitySpecHandle> AbilitiesToRemove;
-
-
+	
 	for (const FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
 	{
 		AbilitiesToRemove.Add(Spec.Handle);
 	}
-
-
 	for (const FGameplayAbilitySpecHandle& Handle : AbilitiesToRemove)
 	{
 		if (Handle.IsValid())
@@ -84,4 +80,34 @@ void UCRAbilitySystemComponent::RemoveAllAbilities()
 	}
 }
 
-
+void UCRAbilitySystemComponent::RemoveAbilities() // Basic 제외 
+{
+	TArray<FGameplayAbilitySpecHandle> AbilitiesToRemove;
+    
+	for (const FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
+	{
+	
+		bool bIsBasicAbility = false;
+		for (const TPair<ECRAbilityInputID, TSubclassOf<UGameplayAbility>>& BasicPair : BasicAbilities)
+		{
+			if (BasicPair.Value && Spec.Ability && Spec.Ability->GetClass() == BasicPair.Value)
+			{
+				bIsBasicAbility = true;
+				break;
+			}
+		}
+		
+		if (!bIsBasicAbility)
+		{
+			AbilitiesToRemove.Add(Spec.Handle);
+		}
+	}
+    
+	for (const FGameplayAbilitySpecHandle& Handle : AbilitiesToRemove)
+	{
+		if (Handle.IsValid())
+		{
+			ClearAbility(Handle); 
+		}
+	}
+}

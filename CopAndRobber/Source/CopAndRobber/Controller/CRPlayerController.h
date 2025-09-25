@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -8,9 +8,12 @@
 #include "CRPlayerController.generated.h"
 
 
+class UCRPlayerResultWidget;
 class UCRBattleHUDWidget;
 class UUserWidget;
-class UCRLobbyWidget;
+/**
+ * 
+ */
 class UCRPlayerInputConfig;
 
 UCLASS()
@@ -23,7 +26,10 @@ public:
 	void Client_SetupInput(UCRPlayerInputConfig* InPlayerInputConfig);
 
 	void JoinServer(const FString& Address, const FString& Nickname);
-
+	
+	void ShowBattleHUD();
+	
+	void ShowReusultHUD();
 
 
 
@@ -41,27 +47,27 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UCRBattleHUDWidget> BattleWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UCRPlayerResultWidget> ResultWidgetClass;
 public:
 	void UpdateBuffUI(const FGameplayTag& Tag, int Count);
 	void RemoveBuffUI(const FGameplayTag& Tag);
-
-	UFUNCTION(Server, Reliable)
-	void Server_ToggleReady();
-	UFUNCTION(Server, Reliable)
-	void Server_SetNickname(const FString& NewNickname);
 	
 protected:
-	void ShowBattleHUD();
+	
 	void BindingBattleHUD();
-
 private:
 	UPROPERTY()
 	TObjectPtr<UUserWidget> TitleWidgetInstance;
+
 	UPROPERTY()
-	TObjectPtr<UCRLobbyWidget> LobbyWidgetInstance;
+	TObjectPtr<UUserWidget> LobbyWidgetInstance;
+	
 	UPROPERTY()
 	TObjectPtr<UCRBattleHUDWidget> BattleWidgetInstance;
-#pragma endregion
 
-	FString PendingNickname;
+	UPROPERTY()
+	TObjectPtr<UCRPlayerResultWidget> ResultWidgetInstance;
+#pragma endregion 
 };

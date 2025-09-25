@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/CRAbilitySystemComponent.h"
 #include "GAS/GameplayTagsStatic.h"
+#include "GAS/Ability/Character/GAP_Death.h"
 #include "GAS/Attribute/CRAttributeSet.h"
 
 
@@ -137,15 +138,8 @@ void ACRCharacter::OnDeathTagChanged(FGameplayTag Tag, int32 NewCount)
 	if (NewCount != 0)
 	{
 		OnDeath();
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 	}
-	else 
-	{
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	}
-
 }
 
 void ACRCharacter::OnDeath()
@@ -153,18 +147,17 @@ void ACRCharacter::OnDeath()
 	
 }
 
-void ACRCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData)
+void ACRCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData) 
 {
-	if (!GetCRAbilitySystemComponent() || !HasAuthority())
-		return; 
+	if (!HasAuthority()) return;
 
-	UCRAbilitySystemComponent* ASC = GetCRAbilitySystemComponent();
+	float CurrentHealth = OnAttributeChangeData.NewValue;
 
-	if (OnAttributeChangeData.NewValue <= 0.f)
+	if (CurrentHealth <= 0.f && !IsDead()) 
 	{
-		if (!IsDead())
+		if (UCRAbilitySystemComponent* ASC = GetCRAbilitySystemComponent())
 		{
-			ASC->ApplyGameplayEffect(DeadEffect);
+			ASC->ApplyGameplayEffect(DeathEffect);
 		}
 	}
 }
