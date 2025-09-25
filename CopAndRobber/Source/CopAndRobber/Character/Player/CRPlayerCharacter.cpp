@@ -368,7 +368,7 @@ void ACRPlayerCharacter::OnDeath()
 		if (PC)
 		{
 			PC->SetIgnoreMoveInput(true);
-			PC->ShowReusultHUD();
+			PC->ShowResultHUD();
 		}
 	}
 
