@@ -1,7 +1,9 @@
 //GCN_CRReveal.cpp
 
-#include "Gimmick/Item/Reveal/GCN_CRReveal.h"
+#include "GCN_CRReveal.h"
+
 #include "EngineUtils.h"
+#include "Kismet/GameplayStatics.h"
 
 AGCN_CRReveal::AGCN_CRReveal()
 {
@@ -11,15 +13,26 @@ AGCN_CRReveal::AGCN_CRReveal()
 	bAutoAttachToOwner = true;
 }
 
-bool AGCN_CRReveal::OnActive_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
+bool AGCN_CRReveal::OnActive_Implementation(AActor* Target, const FGameplayCueParameters& Parameters)
 {
-	ApplyRevealForLocal(MyTarget);
+	if (!Target || Target->GetNetMode() == NM_DedicatedServer) return true;
+
+	UE_LOG(LogTemp, Warning, TEXT("Player: %s"), *Target->GetName());
+	if (IsOwner(Target))
+	{
+		ApplyRevealForLocal(Target);
+	}
 	return true;
 }
 
-bool AGCN_CRReveal::OnRemove_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
+bool AGCN_CRReveal::OnRemove_Implementation(AActor* Target, const FGameplayCueParameters& Parameters)
 {
-	ClearRevealForLocal();
+	if (!Target || Target->GetNetMode() == NM_DedicatedServer) return true;
+	
+	if (IsOwner(Target))
+	{
+		ClearRevealForLocal();
+	}
 	return true;
 }
 
@@ -27,13 +40,14 @@ void AGCN_CRReveal::ApplyRevealForLocal(AActor* Target) const
 {
 	if (!Target) return;
 
-	APawn* Pawn = Cast<APawn>(Target);
-	AController* LocalCtrl = Pawn ? Pawn->GetController() : nullptr;
-
-	if (!LocalCtrl || !LocalCtrl->IsPlayerController()) return;
-
 	UWorld* World = Target->GetWorld();
 	if (!World) return;
+
+	APlayerController* LocalPC = UGameplayStatics::GetPlayerController(World, 0);
+	if (!LocalPC) return;
+	
+	APawn* LocalPawn = LocalPC->GetPawn();
+	if (!LocalPawn) return;
 
 	for (auto It = OutlinedActors.CreateIterator(); It; ++It)
 	{
@@ -42,10 +56,12 @@ void AGCN_CRReveal::ApplyRevealForLocal(AActor* Target) const
 			It.RemoveCurrent();
 			continue;
 		}
-		AActor* A = It->Get();
-		if (!IsOtherPlayer(A, LocalCtrl))
+
+		AActor* Actor = It->Get();
+		if (!IsOtherPlayer(Actor, LocalPawn))
 		{
-			SetOutline(A, false);
+			SetOutline(Actor, false);
+			UE_LOG(LogTemp, Warning, TEXT("Player: %s"), *Actor->GetName());
 			It.RemoveCurrent();
 		}
 	}
@@ -53,18 +69,19 @@ void AGCN_CRReveal::ApplyRevealForLocal(AActor* Target) const
 	for (TActorIterator<APawn> ItPawn(World); ItPawn; ++ItPawn)
 	{
 		APawn* P = *ItPawn;
-		if (!P || P == Pawn) continue;
-		if (!IsOtherPlayer(P, LocalCtrl)) continue;
+		if (!P) continue;
+		if (!IsOtherPlayer(P, LocalPawn)) continue;
 
 		if (!OutlinedActors.Contains(P))
 		{
 			SetOutline(P, true);
 			OutlinedActors.Add(P);
 		}
+		
 	}
 }
 
-void AGCN_CRReveal::ClearRevealForLocal() const
+void AGCN_CRReveal::ClearRevealForLocal()
 {
 	for (auto& WeakA : OutlinedActors)
 	{
@@ -95,13 +112,16 @@ void AGCN_CRReveal::SetOutline(AActor* Target, bool bEnable) const
 	}
 }
 
-bool AGCN_CRReveal::IsOtherPlayer(AActor* Actor, const AController* LocalCtrl) const
+bool AGCN_CRReveal::IsOtherPlayer(AActor* Actor, const APawn* LocalPawn) const
 {
 	const APawn* P = Cast<APawn>(Actor);
 	if (!P) return false;
+	
+	return (P != LocalPawn) && P->IsPlayerControlled();
+}
 
-	const AController* C = P->GetController();
-	if (!C || !C->IsPlayerController()) return false;
-
-	return (C != LocalCtrl);
+bool AGCN_CRReveal::IsOwner(const AActor* Target)
+{
+	const APawn* Pawn = Cast<APawn>(Target);
+	return Pawn && Pawn->IsLocallyControlled();
 }

@@ -17,15 +17,16 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Reveal")
 	int RevealStencil = 250;
 
-	virtual bool OnActive_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters) override;
-	virtual bool OnRemove_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters) override;
+	virtual bool OnActive_Implementation(AActor* Target, const FGameplayCueParameters& Parameters) override;
+	virtual bool OnRemove_Implementation(AActor* Target, const FGameplayCueParameters& Parameters) override;
 
 private:
 	mutable TSet<TWeakObjectPtr<AActor>> OutlinedActors;
 
 	void ApplyRevealForLocal(AActor* Target) const;
-	void ClearRevealForLocal() const;
+	void ClearRevealForLocal();
 
 	void SetOutline(AActor* Target, bool bEnable) const;
-	bool IsOtherPlayer(AActor* Actor, const AController* LocalCtrl) const;
+	bool IsOtherPlayer(AActor* Actor, const APawn* LocalPawn) const;
+	static bool IsOwner(const AActor* Target);
 };
