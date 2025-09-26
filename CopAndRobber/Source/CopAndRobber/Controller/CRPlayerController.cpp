@@ -172,11 +172,6 @@ void ACRPlayerController::Server_ToggleReady_Implementation()
 		UE_LOG(LogTemp, Warning, TEXT("[SERVER] %s is now %s"),
 			*CRPS->GetPlayerName(),
 			CRPS->bIsReady ? TEXT("READY") : TEXT("NOT READY"));
-
-		if (ACRGameMode* GM = GetWorld()->GetAuthGameMode<ACRGameMode>())
-		{
-			GM->CheckAllPlayersReady();
-		}
 	}
 }
 

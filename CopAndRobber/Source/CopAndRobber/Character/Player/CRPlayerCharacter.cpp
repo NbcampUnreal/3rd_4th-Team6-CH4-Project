@@ -1,7 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Character/Player/CRPlayerCharacter.h"
+﻿#include "Character/Player/CRPlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Controller/CRPlayerController.h"
@@ -15,6 +12,7 @@
 #include "Actor/CRDoor.h"
 #include "Character/Animation/CRAnimInstance.h"
 #include "GameMode/CRPlayerState.h"
+#include "GameMode/CRGameMode.h"
 #include "GAS/Attribute/CRAttributeSet.h"
 
 ACRPlayerCharacter::ACRPlayerCharacter()
@@ -362,6 +360,13 @@ void ACRPlayerCharacter::RecoverStun()
 void ACRPlayerCharacter::OnDeath()
 {
 	Super::OnDeath();
+
+	ACRGameMode* GameMode = GetWorld()->GetAuthGameMode<ACRGameMode>();
+	if (GameMode)
+	{
+		GameMode->PlayerDied(GetPlayerState<ACRPlayerState>());
+	}
+
 	if (IsLocallyControlled())
 	{
 		ACRPlayerController* PC = Cast<ACRPlayerController>(GetController());

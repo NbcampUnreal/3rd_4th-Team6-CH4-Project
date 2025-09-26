@@ -31,6 +31,9 @@ void ACRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, MyTeamID, SharedParams);
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, bIsReady, SharedParams);
+	
+	DOREPLIFETIME(ThisClass, Kills);
+	DOREPLIFETIME(ThisClass, bIsAlive);
 }
 
 
@@ -57,14 +60,6 @@ void ACRPlayerState::OnRep_bIsReady()
 		if (UCRLobbyWidget* LobbyWidget = Cast<UCRLobbyWidget>(Widget))
 		{
 			LobbyWidget->RefreshPlayerList();
-		}
-	}
-	
-	if (HasAuthority())
-	{
-		if (ACRGameMode* GM = GetWorld()->GetAuthGameMode<ACRGameMode>())
-		{
-			GM->CheckAllPlayersReady();
 		}
 	}
 }

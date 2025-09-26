@@ -49,7 +49,7 @@ protected:
 #pragma endregion
 
 #pragma region Status
-protected:
+public:
 	virtual bool IsDead() const;
 	virtual void OnStun();
 	virtual void RecoverStun();

@@ -71,12 +71,6 @@ void UCRZoneCountdownComponent::TickOneSecond()
 
 	RemainingSeconds = FMath::Max(0, RemainingSeconds-1);
 	OnRep_Remaining();
-
-	if (AActor* OwnerActor = GetOwner())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s Zone Timer: %d seconds left"),
-			*OwnerActor->GetName(), RemainingSeconds);
-	}
 	
 	if (RemainingSeconds <= 0)
 	{

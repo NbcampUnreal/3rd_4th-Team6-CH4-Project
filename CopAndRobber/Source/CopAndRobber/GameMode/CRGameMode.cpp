@@ -5,17 +5,65 @@
 #include "NavigationSystem.h"
 #include "Character/Player/CRPlayerCharacter.h"
 #include "Controller/CRPlayerController.h"
-#include "GameData/CRPlayerInputConfig.h"
 #include "AI/AISpawner/CRAISpawner.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
-#include "Kismet/GameplayStatics.h"
 
 ACRGameMode::ACRGameMode()
 {
 	GameStateClass = ACRGameState::StaticClass();
 	PlayerStateClass = ACRPlayerState::StaticClass();
 	MinPlayersToStart = 2;
+}
+
+void ACRGameMode::StartPlay()
+{
+	Super::StartPlay();
+	CRGameState = GetGameState<ACRGameState>();
+	CRGameState->GamePhase = EGamePhase::GameInProgress;
+
+	BeginGame();
+
+	// 점수판 계산 세팅
+    CalculateAndSetRanks();
+
+	// 점수판 업데이트 주기 타이머
+    GetWorldTimerManager().SetTimer(RankUpdateTimerHandle, this, &ACRGameMode::CalculateAndSetRanks, RankUpdateInterval, true);
+}
+
+void ACRGameMode::BeginGame()
+{
+	// GameState에 있는 컴포넌트를 통해 자기장 카운트다운 시작
+	if (CRGameState->ZoneCountdownComponent)
+	{
+		CRGameState->ZoneCountdownComponent->ServerStartCountdown();
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Error, TEXT("World is null in BeginGame. Cannot spawn AI"));
+		return;
+	}
+	
+	if (AISpawnerClass)
+	{
+		{
+			ACRAISpawner* AISpawner = World->SpawnActor<ACRAISpawner>(AISpawnerClass, FVector::ZeroVector, FRotator::ZeroRotator);
+			if (AISpawner)
+			{
+				AISpawner->SpawnAllAI();
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to spawn ACRAISpawner"));
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AISpawnerClass is not set in ACRGameMode"));
+	}
 }
 
 void ACRGameMode::PostLogin(APlayerController* NewPlayer)
@@ -26,8 +74,7 @@ void ACRGameMode::PostLogin(APlayerController* NewPlayer)
 	{
 		FString PlayerName = NewPlayer->GetPlayerState<APlayerState>()->GetPlayerName();
 	}
-
-	CRGameState = GetGameState<ACRGameState>();
+	
 	if (CRGameState)
 	{
 		CRGameState->NumPlayers++;
@@ -129,85 +176,138 @@ void ACRGameMode::RestartPlayer(AController* NewPlayer)
 	}
 }
 
-
-void ACRGameMode::BeginGame()
+void ACRGameMode::PlayerDied(ACRPlayerState* Player)
 {
-	if (!CRGameState || CRGameState->GamePhase != EGamePhase::WaitingForPlayers)
+	if (!CRGameState || CRGameState->GamePhase != EGamePhase::GameInProgress)
 	{
 		return;
 	}
 
-	// ✅ [1] GamePhase 먼저 바꿔서 중복 방지
-	CRGameState->GamePhase = EGamePhase::GameInProgress;
-	
-	// ✅ [2] ServerTravel 먼저
-	UWorld* World = GetWorld();
-	if (World)
+	if (Player)
 	{
-		const FString NextMap = TEXT("/Game/Map/MainLevel?listen");
-		UE_LOG(LogTemp, Warning, TEXT("[GameMode] ServerTravel to: %s"), *NextMap);
-		World->ServerTravel(NextMap, true);
-	}
-		
-	if (CRGameState)
-	{
-		CRGameState->GamePhase = EGamePhase::GameInProgress;
+        // 플레이어 사망
+        Player->SetIsAlive(false);
 
-		// GameState에 있는 컴포넌트를 통해 자기장 카운트다운 시작
-		if (CRGameState->ZoneCountdownComponent)
-		{
-			CRGameState->ZoneCountdownComponent->ServerStartCountdown();
-		}
+        // 점수판 재계산
+        CalculateAndSetRanks();
 	}
 
-	if (AISpawnerClass)
+	// 생존한 플레이어를 기준으로 게임 종료 조건 체크
+	int32 AlivePlayerCount = 0;
+	for (APlayerState* PS : GameState->PlayerArray)
 	{
+		if (ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS))
 		{
-			ACRAISpawner* AISpawner = World->SpawnActor<ACRAISpawner>(AISpawnerClass, FVector::ZeroVector, FRotator::ZeroRotator);
-			if (AISpawner)
+			if (CRPS->bIsAlive)
 			{
-				AISpawner->SpawnAllAI();
+				AlivePlayerCount++;
 			}
 		}
 	}
+
+	// 생존한 플레이어 숫자가 1명 이하일 경우 게임 종료
+	if (AlivePlayerCount <= 1)
+	{
+		EndGame();
+	}
 }
 
-void ACRGameMode::CheckAllPlayersReady()
+void ACRGameMode::EndGame()
 {
-	if (!CRGameState || CRGameState->GamePhase != EGamePhase::WaitingForPlayers)
+	if (!CRGameState)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[GameMode] Not in waiting phase."));
 		return;
 	}
+	CRGameState->GamePhase = EGamePhase::GameFinished;
+	
+    GetWorldTimerManager().ClearTimer(RankUpdateTimerHandle);
 
-	const TArray<APlayerState*>& Players = GameState->PlayerArray;
+    // 최종 점수판 계산
+    CalculateAndSetRanks();
 
-	int32 ReadyCount = 0;
-
-	for (APlayerState* PS : Players)
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
 	{
-		ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS);
-		if (!CRPS)
-			continue;
-		
-		if (CRPS->bIsReady)
+		UWorld* World = GetWorld();
+		if (World)
 		{
-			ReadyCount++;
+			// 게임이 끝나고 로비 화면으로 돌아가는 로직입니다. 로비 부분을 넣어주면 됩니다
+			World->ServerTravel("/Game/Map/TitleLevel?listen", true);
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[GameMode] Player %s is not ready."), *PS->GetPlayerName());
-			return;	
-		}
-	}
+	}, 5.f, false);
+}
 
-	if (ReadyCount >= MinPlayersToStart)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[GameMode] All players are ready. Starting game!"));
-		BeginGame();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[GameMode] Ready players: %d, but need at least %d"), ReadyCount, MinPlayersToStart);
-	}
+void ACRGameMode::CalculateAndSetRanks()
+{
+    if (!CRGameState)
+    {
+        UE_LOG(LogTemp, Error, TEXT("CalculateAndSetRanks: CRGameState is null."));
+        return;
+    }
+
+    TArray<FPlayerRankInfo> CurrentRanks;
+    TArray<ACRPlayerState*> AlivePlayers;
+    TArray<ACRPlayerState*> DeadPlayers;
+
+    // 플레이어 데이터를 수집해서 생존, 사망을 구분합니다
+    for (APlayerState* PS : GameState->PlayerArray)
+    {
+        if (ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS))
+        {
+            if (CRPS->bIsAlive)
+            {
+                AlivePlayers.Add(CRPS);
+            }
+            else
+            {
+                DeadPlayers.Add(CRPS);
+            }
+        }
+    }
+
+    // 생존해있는 플레이어를 정렬합니다(킬 수)
+    AlivePlayers.Sort([](const ACRPlayerState& A, const ACRPlayerState& B)
+    {
+        if (A.Kills != B.Kills)
+        {
+            return A.Kills > B.Kills;
+        }
+    	// 킬 수가 같을 경우 이름 순으로 정렬됩니다
+        return A.GetPlayerName() < B.GetPlayerName();
+    });
+
+    // 사망한 플레이어를 정렬합니다
+    DeadPlayers.Sort([](const ACRPlayerState& A, const ACRPlayerState& B)
+    {
+        if (A.Kills != B.Kills)
+        {
+            return A.Kills > B.Kills;
+        }
+        return A.GetPlayerName() < B.GetPlayerName();
+    });
+
+	// 순위를 할당합니다
+    int32 CurrentRank = 1;
+    for (ACRPlayerState* CRPS : AlivePlayers)
+    {
+        FPlayerRankInfo RankInfo;
+        RankInfo.PlayerName = CRPS->GetPlayerName();
+        RankInfo.Rank = CurrentRank++;
+        RankInfo.Kills = CRPS->Kills;
+        RankInfo.bIsAlive = CRPS->bIsAlive;
+        CurrentRanks.Add(RankInfo);
+    }
+	
+    for (ACRPlayerState* CRPS : DeadPlayers)
+    {
+        FPlayerRankInfo RankInfo;
+        RankInfo.PlayerName = CRPS->GetPlayerName();
+        RankInfo.Rank = CurrentRank++;
+        RankInfo.Kills = CRPS->Kills;
+        RankInfo.bIsAlive = CRPS->bIsAlive;
+        CurrentRanks.Add(RankInfo);
+    }
+	
+    CRGameState->PlayerRanks = CurrentRanks;
+    CRGameState->NumPlayers = GameState->PlayerArray.Num(); // Update total players
 }
