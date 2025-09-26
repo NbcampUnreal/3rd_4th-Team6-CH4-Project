@@ -7,6 +7,7 @@
 ACRLobbyGameModeBase::ACRLobbyGameModeBase()
 {
 	MinPlayersToStart = 2; // 기본값
+	GameStateClass = ACRLobbyGameStateBase::StaticClass();
 }
 
 void ACRLobbyGameModeBase::PostLogin(APlayerController* NewPlayer)
@@ -20,11 +21,11 @@ void ACRLobbyGameModeBase::PostLogin(APlayerController* NewPlayer)
 
 void ACRLobbyGameModeBase::CheckAllPlayersReady()
 {
-	if (!GameState) return;
+	ACRLobbyGameStateBase* LGS = GetGameState<ACRLobbyGameStateBase>();
+	if (!LGS) return;
 
 	int32 ReadyCount = 0;
-
-	for (APlayerState* PS : GameState->PlayerArray)
+	for (APlayerState* PS : LGS->PlayerArray)
 	{
 		if (ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS))
 		{
@@ -35,28 +36,14 @@ void ACRLobbyGameModeBase::CheckAllPlayersReady()
 		}
 	}
 
-	ACRLobbyGameStateBase* LGS = GetGameState<ACRLobbyGameStateBase>();
-	if (!LGS) return;
+	// GameState에 집계 값 기록 (UI에서 바로 표시 가능)
+	LGS->CurrentPlayerCount = LGS->PlayerArray.Num();
+	LGS->ReadyPlayerCount   = ReadyCount;
 
-	if (ReadyCount >= MinPlayersToStart && ReadyCount == GameState->PlayerArray.Num())
+	// 조건 만족 → MainLevel 이동
+	if (ReadyCount >= MinPlayersToStart && ReadyCount == LGS->PlayerArray.Num())
 	{
-		UE_LOG(LogTemp, Log, TEXT("All players ready!"));
-
-		// ✅ GameState Phase 갱신
-		LGS->SetLobbyPhase(ELobbyPhase::AllReady);
-
-		// 필요하다면 카운트다운 같은 걸 거치고 → Start 상태로 전환
-		LGS->SetLobbyPhase(ELobbyPhase::Starting);
-
-		// ✅ 게임 시작
+		UE_LOG(LogTemp, Log, TEXT("All players ready! Moving to MainLevel..."));
 		GetWorld()->ServerTravel(TEXT("/Game/Map/MainLevel?listen"));
-	}
-	else
-	{
-		// 아직 준비 안 됨
-		LGS->SetLobbyPhase(ELobbyPhase::WaitingForPlayers);
-
-		UE_LOG(LogTemp, Log, TEXT("Ready players: %d / %d (Need at least %d)"),
-			ReadyCount, GameState->PlayerArray.Num(), MinPlayersToStart);
 	}
 }
