@@ -36,7 +36,10 @@ void ACRAISpawner::SpawnAllAI()
 	}
 
 	UWorld* World = GetWorld();
-	if (!World) return;
+	if (!World)
+	{
+		return;
+	}
 
 	int32 Spawned = 0;
 	int32 Attempts = 0;
