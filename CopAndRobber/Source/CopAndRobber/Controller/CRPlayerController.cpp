@@ -17,6 +17,7 @@
 #include "UI/CRPlayerResultWidget.h"
 #include "GameFramework/PlayerState.h"
 #include "GameMode/CRGameMode.h"
+#include "GameMode/CRLobbyGameModeBase.h"
 #include "GameMode/CRPlayerState.h"
 
 void ACRPlayerController::Client_SetupInput_Implementation(UCRPlayerInputConfig* InPlayerInputConfig)
@@ -172,8 +173,15 @@ void ACRPlayerController::Server_ToggleReady_Implementation()
 		UE_LOG(LogTemp, Warning, TEXT("[SERVER] %s is now %s"),
 			*CRPS->GetPlayerName(),
 			CRPS->bIsReady ? TEXT("READY") : TEXT("NOT READY"));
+
+		// ✅ GameMode 호출
+		if (ACRLobbyGameModeBase* GM = GetWorld()->GetAuthGameMode<ACRLobbyGameModeBase>())
+		{
+			GM->CheckAllPlayersReady();
+		}
 	}
 }
+
 
 void ACRPlayerController::UpdateBuffUI(const FGameplayTag& Tag, int Count)
 {

@@ -1,3 +1,4 @@
+#include "CRAICharacter.h"
 #include "AI/AICharacter/CRAICharacter.h"
 #include "GAS/CRAbilitySystemComponent.h"
 #include "GAS/Attribute/CRAttributeSet.h"

@@ -254,6 +254,7 @@ void ACRPlayerCharacter::HandleInteractAction(const FInputActionValue& Value)
 
 void ACRPlayerCharacter::HandleReadyAction(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Warning, TEXT("F Key Pressed"));
 	if (ACRPlayerController* CRPC = Cast<ACRPlayerController>(GetController()))
 	{
 		CRPC->Server_ToggleReady(); // ← 서버에서 PlayerState->bIsReady 토글

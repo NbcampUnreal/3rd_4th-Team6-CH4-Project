@@ -32,14 +32,14 @@ void ACRLobbyGameModeBase::CheckAllPlayersReady()
 			if (CRPS->bIsReady)
 			{
 				ReadyCount++;
+				UE_LOG(LogTemp, Log, TEXT("%d"), ReadyCount);
 			}
 		}
 	}
-
+	
 	// GameState에 집계 값 기록 (UI에서 바로 표시 가능)
 	LGS->CurrentPlayerCount = LGS->PlayerArray.Num();
 	LGS->ReadyPlayerCount   = ReadyCount;
-
 	// 조건 만족 → MainLevel 이동
 	if (ReadyCount >= MinPlayersToStart && ReadyCount == LGS->PlayerArray.Num())
 	{
