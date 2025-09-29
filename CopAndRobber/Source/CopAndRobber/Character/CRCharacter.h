@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayEffectTypes.h"
+#include "Abilities/GameplayAbilityTypes.h"
 #include "CRCharacter.generated.h"
 
 class UGameplayEffect;
@@ -28,6 +29,7 @@ protected:
 	virtual void ServerSideInit();
 		
 	virtual void BeginPlay() override;
+	
 
 #pragma  region  GAS
 public:

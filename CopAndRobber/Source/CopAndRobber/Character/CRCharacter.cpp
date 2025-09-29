@@ -10,6 +10,7 @@
 #include "GAS/GameplayTagsStatic.h"
 #include "GAS/Ability/Character/GAP_Death.h"
 #include "GAS/Attribute/CRAttributeSet.h"
+#include "Player/CRPlayerCharacter.h"
 
 
 ACRCharacter::ACRCharacter()
@@ -158,6 +159,10 @@ void ACRCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChange
 		if (UCRAbilitySystemComponent* ASC = GetCRAbilitySystemComponent())
 		{
 			ASC->ApplyGameplayEffect(DeathEffect);
+		}
+		if (ACRPlayerCharacter* PlayerChar = Cast<ACRPlayerCharacter>(this))
+		{
+			PlayerChar->SendInstigatorEvent();
 		}
 	}
 }

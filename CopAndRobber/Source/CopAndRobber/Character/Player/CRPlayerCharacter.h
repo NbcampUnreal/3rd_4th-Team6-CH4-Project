@@ -27,6 +27,7 @@ public:
 	UFUNCTION()
 	void OnEffectAdded(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle EffectHandle);
 	void OnGameplayEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
+	void SendInstigatorEvent();
 	
 	UFUNCTION(Server, Reliable)
 	void ServerInteractDoor(ACRDoor* Door);
@@ -36,6 +37,8 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 	virtual void BindingChangeDelegate() override;
+	void OnEnemyKilled(const FGameplayEventData* Payload);
+	
 	virtual void OnStun() override;
 	virtual void UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData) override;
 
@@ -87,6 +90,8 @@ protected:
 	FGenericTeamId TeamId;
 	
 #pragma endregion
-
-	
+public:
+	void SetLastDamageInstigator(AActor* DamageInstigator) { LastDamageInstigator = DamageInstigator; };
+private:
+	AActor* LastDamageInstigator;
 };

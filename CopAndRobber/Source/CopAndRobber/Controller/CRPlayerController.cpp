@@ -84,8 +84,11 @@ void ACRPlayerController::BeginPlay()
 		SetInputMode(FInputModeGameOnly());
 		bShowMouseCursor = false;
 	}
-
-	ShowBattleHUD();
+	else if (MapName.Contains(TEXT("MainLevel")))
+	{
+		ShowBattleHUD();
+	}
+	
 }
 
 void ACRPlayerController::ShowBattleHUD()
@@ -103,14 +106,22 @@ void ACRPlayerController::ShowBattleHUD()
 
 void ACRPlayerController::ShowResultHUD()
 {
-	if (ResultWidgetClass && IsLocalController())
+	ACRPlayerState* PS = GetPlayerState<ACRPlayerState>();
+	if (PS)
 	{
-		ResultWidgetInstance = CreateWidget<UCRPlayerResultWidget>(this, ResultWidgetClass);
-		if (ResultWidgetInstance)
+		FPlayerRankInfo RankInfo = PS->FindPlayerRankInfo();
+		int32 TotalNum = Cast<ACRGameState>(GetWorld()->GetGameState())->NumPlayers;
+		if (ResultWidgetClass && IsLocalController())
 		{
-			ResultWidgetInstance->AddToViewport();
-		}
+			ResultWidgetInstance = CreateWidget<UCRPlayerResultWidget>(this, ResultWidgetClass);
+			if (ResultWidgetInstance)
+			{
+				ResultWidgetInstance->AddToViewport();
+				ResultWidgetInstance->SetRankInfo(RankInfo,TotalNum);	
+			}
+		}	
 	}
+	
 }
 
 void ACRPlayerController::BindingBattleHUD()

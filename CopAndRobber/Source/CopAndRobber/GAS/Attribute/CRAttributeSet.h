@@ -60,6 +60,5 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxSpeed(const FGameplayAttributeData& OldValue);
-
 	
 };

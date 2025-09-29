@@ -1,4 +1,6 @@
 ﻿#include "Character/Player/CRPlayerCharacter.h"
+
+#include "AbilitySystemGlobals.h"
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Controller/CRPlayerController.h"
@@ -13,6 +15,7 @@
 #include "Character/Animation/CRAnimInstance.h"
 #include "GameMode/CRPlayerState.h"
 #include "GameMode/CRGameMode.h"
+#include "GAS/GameplayTagsStatic.h"
 #include "GAS/Attribute/CRAttributeSet.h"
 
 ACRPlayerCharacter::ACRPlayerCharacter()
@@ -95,7 +98,6 @@ void ACRPlayerCharacter::PossessedBy(AController* NewController)
 void ACRPlayerCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
-	
 	if (ACRPlayerState* PS = GetPlayerState<ACRPlayerState>())
 	{
 		AbilitySystemComponent = Cast<UCRAbilitySystemComponent>(PS->GetAbilitySystemComponent());
@@ -123,11 +125,29 @@ void ACRPlayerCharacter::BindingChangeDelegate()
 	Super::BindingChangeDelegate();
 	GetCRAbilitySystemComponent()->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &ACRPlayerCharacter::OnEffectAdded);
 	GetCRAbilitySystemComponent()->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &ACRPlayerCharacter::OnGameplayEffectRemoved);
+	if (HasAuthority())
+	{
+		GetCRAbilitySystemComponent()->GenericGameplayEventCallbacks.FindOrAdd(UGameplayTagsStatic::GetDeadStatTag()).AddUObject(this, &ACRPlayerCharacter::OnEnemyKilled);
+	}
+
+}
+
+void ACRPlayerCharacter::OnEnemyKilled(const FGameplayEventData* Payload)
+{
+	if (Payload && Payload->Instigator == this)
+	{
+		ACRPlayerState* PS = GetPlayerState<ACRPlayerState>();
+		if (PS)
+		{
+			PS->AddKill();
+		}
+	}
 }
 
 void ACRPlayerCharacter::OnEffectAdded(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& EffectSpec,
-	FActiveGameplayEffectHandle EffectHandle)
+                                       FActiveGameplayEffectHandle EffectHandle)
 {
+
 	FGameplayTagContainer GrantedTags;
 	EffectSpec.GetAllGrantedTags(GrantedTags);
 	float Duration = EffectSpec.GetDuration();
@@ -143,6 +163,38 @@ void ACRPlayerCharacter::OnEffectAdded(UAbilitySystemComponent* ASC, const FGame
 			for (const FGameplayTag& Tag : GrantedTags)
 			{
 				PC->UpdateBuffUI(Tag, Duration);
+			}
+		}
+	}
+}
+
+void ACRPlayerCharacter::SendInstigatorEvent()
+{
+	if (UCRAbilitySystemComponent* ASC = GetCRAbilitySystemComponent())
+	{
+		ASC->ApplyGameplayEffect(DeathEffect);
+          
+	
+		FGameplayEventData DeathEventData;
+		DeathEventData.Target = this;
+		DeathEventData.Instigator = LastDamageInstigator; 
+          
+		ASC->HandleGameplayEvent(
+		   UGameplayTagsStatic::GetDeadStatTag(),
+		   &DeathEventData
+		);
+          
+
+		if (LastDamageInstigator)
+		{
+			UAbilitySystemComponent* InstigatorASC = 
+			   UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(LastDamageInstigator);
+			if (InstigatorASC)
+			{
+				InstigatorASC->HandleGameplayEvent(
+				   UGameplayTagsStatic::GetDeadStatTag(),
+				   &DeathEventData
+				);
 			}
 		}
 	}
@@ -327,6 +379,7 @@ void ACRPlayerCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttribute
 {
 	Super::UpdatedHealth(OnAttributeChangeData);
 
+	
 	if (!IsLocallyControlled())
 		return;
     float CurrentHealth = OnAttributeChangeData.NewValue;
@@ -344,8 +397,8 @@ void ACRPlayerCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttribute
 	    	PC->RemoveBuffUI(FGameplayTag::RequestGameplayTag("State.MaxHealth"));
 	    }
 		
-
 	}
+	
 }
 
 void ACRPlayerCharacter::RecoverStun()

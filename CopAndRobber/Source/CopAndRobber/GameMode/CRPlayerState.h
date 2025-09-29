@@ -8,6 +8,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "CRPlayerState.generated.h"
 
+struct FPlayerRankInfo;
 class UCRAttributeSet;
 /**
  * 
@@ -47,6 +48,8 @@ public:
 	// 스탯 업데이트 함수 (서버에서만 호출)
 	void AddKill() { if (GetLocalRole() == ROLE_Authority) Kills++; }
 	void SetIsAlive(bool bAlive) { if (GetLocalRole() == ROLE_Authority) bIsAlive = bAlive; }
+
+	FPlayerRankInfo FindPlayerRankInfo();
 	
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "GAS")

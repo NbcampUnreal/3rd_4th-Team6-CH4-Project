@@ -1,6 +1,9 @@
 #include "GameMode/CRPlayerState.h"
 
+#include <GameData/CRPlayerRankInfo.h>
+
 #include "CRGameMode.h"
+#include "CRGameState.h"
 #include "GAS/CRAbilitySystemComponent.h"
 #include "GAS/Attribute/CRAttributeSet.h"
 #include "Net/UnrealNetwork.h"
@@ -46,6 +49,24 @@ void ACRPlayerState::SetGenericTeamId(const FGenericTeamId& TeamID)
 FGenericTeamId ACRPlayerState::GetGenericTeamId() const
 {
 	return MyTeamID;
+}
+
+FPlayerRankInfo ACRPlayerState::FindPlayerRankInfo()
+{
+	ACRGameState* GS  = Cast<ACRGameState>(GetWorld()->GetGameState());
+	FPlayerRankInfo* FoundRank = GS->PlayerRanks.FindByPredicate([&](const FPlayerRankInfo& Info)
+	{
+		return Info.PlayerName == GetPlayerName();
+	});
+	if (FoundRank)
+	{
+		return *FoundRank;
+	}
+	else
+	{
+		return FPlayerRankInfo();
+	}
+
 }
 
 void ACRPlayerState::OnRep_bIsReady()

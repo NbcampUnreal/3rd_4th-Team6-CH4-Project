@@ -9,6 +9,7 @@
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Character/CRCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameMode/CRGameMode.h"
 #include "GAS/GameplayTagsStatic.h"
 #include "GAS/Attribute/CRAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
@@ -45,7 +46,8 @@ void UGA_BasicAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		
 		PlayAttackMontageTask->ReadyForActivation();
 	}
-	if (K2_HasAuthority()) 
+	ACRGameMode* GM = Cast<ACRGameMode>(GetWorld()->GetAuthGameMode());
+	if (K2_HasAuthority()&& GM) 
 	{
 		UAbilityTask_WaitGameplayEvent* WaitTargetEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("ability.generic.damage"),nullptr,true);
 		WaitTargetEventTask->EventReceived.AddDynamic(this, &UGA_BasicAttack::CheckTargetHit);

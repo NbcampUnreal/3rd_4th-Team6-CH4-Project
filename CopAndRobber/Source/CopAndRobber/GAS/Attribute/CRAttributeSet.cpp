@@ -3,6 +3,8 @@
 
 #include "GAS/Attribute/CRAttributeSet.h"
 #include "GameplayEffectExtension.h"
+#include "Character/CRCharacter.h"
+#include "Character/Player/CRPlayerCharacter.h"
 #include "GAS/CRAbilitySystemComponent.h"
 #include "GAS/GameplayTagsStatic.h"
 #include "GAS/Ability/Character/GAP_Death.h"
@@ -50,6 +52,15 @@ void UCRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		if (ClampedHealth != GetHealth())
 		{
 			SetHealth(ClampedHealth);
+		}
+		AActor* Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
+		if (Instigator)
+		{
+			ACRPlayerCharacter* Owner = Cast<ACRPlayerCharacter>(GetOwningActor());
+			if (Owner)
+			{
+				Owner->SetLastDamageInstigator(Instigator);
+			}
 		}
 	}
 

@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CRPlayerResultWidget.generated.h"
 
+struct FPlayerRankInfo;
 class UTextBlock;
 /**
  * 
@@ -14,15 +15,27 @@ UCLASS()
 class COPANDROBBER_API UCRPlayerResultWidget : public UUserWidget
 {
 	GENERATED_BODY()
+public:
+	void SetRankInfo(FPlayerRankInfo ACRPlayerState, int32 TotalNum);
+
+	void SetRankText(int32 rank);
+
+	void SetKillText(int32 kill);
+
+	void SetDescriptionText(int32 rank);
+
 private:
-	//1 플레이어 등수
+
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> RankTextBlock;
-	//2.처치 수
+
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> KillTextBlock;
-	// 결과 TEXT IF 1등이면 축하합니다  나머지는 아쉽지만 탈락입니다
+	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> DescriptTextBlock;
+
+	int32 CachedTotalNum = 0;
+	
 	
 };
