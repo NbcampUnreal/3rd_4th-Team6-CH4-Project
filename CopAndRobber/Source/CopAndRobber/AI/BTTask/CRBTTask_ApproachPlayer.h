@@ -32,5 +32,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float ApproachDuration = 3.f;
 
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float AcceptanceRadius = 150.f;
+	
 	void OnApproachTimerFinished(UBehaviorTreeComponent* OwnerComp, FApproachPlayerTaskMemory* TaskMemory);
 };

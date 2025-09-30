@@ -70,13 +70,24 @@ void UCRBTTask_ApproachPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 		return;
 	}
 
-	FVector CurrentTarget = BBComp->GetValueAsVector(ACRAIController::BBKey_TargetLocation);
-	if (!PlayerLocation.Equals(CurrentTarget, 10.f))
+	APawn* AIPawn = AICon->GetPawn();
+	if (!AIPawn)
 	{
-		BBComp->SetValueAsVector(ACRAIController::BBKey_TargetLocation, PlayerLocation);
-		AICon->MoveToLocation(PlayerLocation, 150.f, false, true, false, false, nullptr, true);
+		return;
 	}
+
+	float DistanceToPlayer = FVector::Dist2D(AIPawn->GetActorLocation(), PlayerLocation);
+
+	if (DistanceToPlayer <= AcceptanceRadius)
+	{
+		AICon->StopMovement();
+		return;
+	}
+
+	BBComp->SetValueAsVector(ACRAIController::BBKey_TargetLocation, PlayerLocation);
+	AICon->MoveToLocation(PlayerLocation, AcceptanceRadius, false, true, false, false, nullptr, true);
 }
+
 
 void UCRBTTask_ApproachPlayer::OnApproachTimerFinished(UBehaviorTreeComponent* OwnerComp, FApproachPlayerTaskMemory* TaskMemory)
 {

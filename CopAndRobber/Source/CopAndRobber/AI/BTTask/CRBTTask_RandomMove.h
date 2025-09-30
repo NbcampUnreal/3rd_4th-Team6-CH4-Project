@@ -16,15 +16,25 @@ protected:
     virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
     virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
-    bool bHasStartedMove;
-
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
-    float AcceptanceRadius = 5.f;
+    float AcceptanceRadius = 50.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
-    float MaxMoveRadius = 1000.f;
+    float MaxMoveRadius = 1500.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
-    float MinMoveDistance = 500.f;
+    float MinMoveDistance = 300.0f;
+
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
+    float MaxWaitTime = 5.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
+    float StuckCheckTime =1.0f;
+
+private:
+    float CurrentWaitTime;
+    float StuckTimer;
+    FVector LastLocation;
 };
