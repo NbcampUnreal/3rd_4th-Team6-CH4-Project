@@ -51,6 +51,9 @@ public:
 	void RemoveBuffUI(const FGameplayTag& Tag);
 	void ShowBattleHUD();
 	void ShowResultHUD();
+
+	UFUNCTION(Client, Reliable)
+	void Client_ShowResultHUD();
 	
 	UFUNCTION(Server, Reliable)
 	void Server_ToggleReady();

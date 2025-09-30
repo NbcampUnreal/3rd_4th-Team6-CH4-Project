@@ -124,6 +124,11 @@ void ACRPlayerController::ShowResultHUD()
 	
 }
 
+void ACRPlayerController::Client_ShowResultHUD_Implementation()
+{
+	ShowResultHUD();
+}
+
 void ACRPlayerController::BindingBattleHUD()
 {
 	if (ACRGameState* GS = Cast<ACRGameState>(GetWorld()->GetGameState()))

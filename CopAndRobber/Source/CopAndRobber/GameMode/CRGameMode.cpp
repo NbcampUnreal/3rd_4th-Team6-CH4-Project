@@ -227,6 +227,22 @@ void ACRGameMode::EndGame()
     // 최종 점수판 계산
     CalculateAndSetRanks();
 
+	// Find winner and show result HUD
+	for (APlayerState* PS : GameState->PlayerArray)
+	{
+		if (ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS))
+		{
+			if (CRPS->bIsAlive)
+			{
+				ACRPlayerController* PC = Cast<ACRPlayerController>(CRPS->GetPlayerController());
+				if (PC)
+				{
+					PC->Client_ShowResultHUD();
+				}
+			}
+		}
+	}
+
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
 	{
