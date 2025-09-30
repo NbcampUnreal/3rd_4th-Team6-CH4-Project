@@ -2,6 +2,8 @@
 
 
 #include "GAS/Attribute/CRAttributeSet.h"
+
+#include "AbilitySystemGlobals.h"
 #include "GameplayEffectExtension.h"
 #include "Character/CRCharacter.h"
 #include "Character/Player/CRPlayerCharacter.h"
@@ -9,6 +11,7 @@
 #include "GAS/GameplayTagsStatic.h"
 #include "GAS/Ability/Character/GAP_Death.h"
 #include "Net/UnrealNetwork.h"
+
 
 UCRAttributeSet::UCRAttributeSet()
 {
@@ -46,6 +49,7 @@ void UCRAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 void UCRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
+
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		float ClampedHealth = FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth());
@@ -53,18 +57,25 @@ void UCRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		{
 			SetHealth(ClampedHealth);
 		}
-		AActor* Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
-		if (Instigator)
+
+		if (ClampedHealth <= 0.0f)
 		{
-			ACRPlayerCharacter* Owner = Cast<ACRPlayerCharacter>(GetOwningActor());
-			if (Owner)
-			{
-				Owner->SetLastDamageInstigator(Instigator);
-			}
+			
+			if (!GetOwningAbilitySystemComponent()->IsOwnerActorAuthoritative())
+				return;
+
+			UAbilitySystemComponent* InstigatorASC = Data.EffectSpec.GetEffectContext().GetInstigatorAbilitySystemComponent();
+			AActor* InstigatorActor = InstigatorASC ? InstigatorASC->GetAvatarActor() : nullptr;
+			AActor* DeadActor = GetOwningAbilitySystemComponent()->GetAvatarActor();
+
+			UE_LOG(LogTemp, Warning, TEXT("[Death] %s killed by %s"), 
+				*GetNameSafe(DeadActor), 
+				*GetNameSafe(InstigatorActor));
+
+			OnDeath.Broadcast(DeadActor, InstigatorActor);
 		}
 	}
 
-	
 	if (Data.EvaluatedData.Attribute == GetSpeedAttribute())
 	{
 		float ClampedSpeed = FMath::Clamp(GetSpeed(), 0.0f, GetMaxSpeed());

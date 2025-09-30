@@ -85,13 +85,14 @@ void UGA_BasicAttack::CheckTargetHit(FGameplayEventData Data)
 			if (HitResult.GetActor())
 			{
 
-             if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Friendly)
-             {
-             	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(BasicAttackEffect, 1);
-             	FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
-             	EffectSpecHandle.Data->SetContext(EffectContext);
-             	ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitResult.GetActor()));
-             }
+				if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Friendly)
+				{
+					FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(BasicAttackEffect, 1);
+					FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
+					EffectContext.AddInstigator(GetAvatarActorFromActorInfo(), GetAvatarActorFromActorInfo());
+					EffectSpecHandle.Data->SetContext(EffectContext);
+					ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitResult.GetActor()));
+				}
              else if (GTI->GetTeamAttitudeTowards(*HitResult.GetActor()) == ETeamAttitude::Neutral)
              {
              	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(StunEffect, 1);

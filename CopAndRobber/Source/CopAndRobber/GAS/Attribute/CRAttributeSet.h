@@ -7,6 +7,8 @@
 #include "AttributeSet.h"
 #include "CRAttributeSet.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnDeathSignature, AActor* /*DeadActor*/, AActor* /*Instigator*/);
+
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
 	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
@@ -22,6 +24,8 @@ class COPANDROBBER_API UCRAttributeSet : public UAttributeSet
 
 public:
 	UCRAttributeSet();
+
+	FOnDeathSignature OnDeath;
 	
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;

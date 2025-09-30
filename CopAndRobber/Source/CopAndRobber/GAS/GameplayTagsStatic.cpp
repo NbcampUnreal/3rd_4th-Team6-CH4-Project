@@ -21,6 +21,11 @@ FGameplayTag UGameplayTagsStatic::GetStunStatTag()
 	return FGameplayTag::RequestGameplayTag("character.stats.stun");
 }
 
+FGameplayTag UGameplayTagsStatic::GetKillTag()
+{
+	return FGameplayTag::RequestGameplayTag("event.kill");
+}
+
 FGameplayTag UGameplayTagsStatic::GetGenericDamagePointTag()
 {
 	return FGameplayTag::RequestGameplayTag("ability.generic.damage");

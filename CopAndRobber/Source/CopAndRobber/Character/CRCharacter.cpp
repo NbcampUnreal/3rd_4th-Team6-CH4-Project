@@ -1,8 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Character/CRCharacter.h"
-
 #include "Animation/CRAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -12,162 +8,123 @@
 #include "GAS/Attribute/CRAttributeSet.h"
 #include "Player/CRPlayerCharacter.h"
 
-
+//------------------------------------------------------------
+// Constructor & Movement Settings
+//------------------------------------------------------------
 ACRCharacter::ACRCharacter()
 {
- 	
-	PrimaryActorTick.bCanEverTick = false;
-#pragma region CharacterMovementSetting
-	
+    PrimaryActorTick.bCanEverTick = false;
 
-	GetCharacterMovement()->bOrientRotationToMovement = true; 
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
-	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+    // Character Movement
+    GetCharacterMovement()->bOrientRotationToMovement = true;
+    GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
+    GetCharacterMovement()->bUseControllerDesiredRotation = false;
 
-
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationRoll = false;
-#pragma endregion
-
-
+    bUseControllerRotationYaw = false;
+    bUseControllerRotationPitch = false;
+    bUseControllerRotationRoll = false;
 }
 
-// Called when the game starts or when spawned
 void ACRCharacter::BeginPlay()
 {
-	Super::BeginPlay();
-	
+    Super::BeginPlay();
 }
 
-#pragma region Gas
-
+//------------------------------------------------------------
+// Ability System (GAS)
+//------------------------------------------------------------
 UAbilitySystemComponent* ACRCharacter::GetAbilitySystemComponent() const
 {
-	if (!IsValid(AbilitySystemComponent))
-	{
-		return nullptr;
-	}
-	return AbilitySystemComponent;
+    return IsValid(AbilitySystemComponent) ? AbilitySystemComponent : nullptr;
 }
 
 UCRAbilitySystemComponent* ACRCharacter::GetCRAbilitySystemComponent() const
 {
-	return Cast<UCRAbilitySystemComponent>(GetAbilitySystemComponent());
-}
-
-bool ACRCharacter::IsAbilitySystemInitialized() const
-{
-	return AbilitySystemComponent != nullptr;
+    return Cast<UCRAbilitySystemComponent>(GetAbilitySystemComponent());
 }
 
 void ACRCharacter::ServerSideInit()
 {
-	if (!IsAbilitySystemInitialized())
-	{
-		return;
-	}
-	AbilitySystemComponent->ApplyInitialEffects();
-	AbilitySystemComponent->GiveInitialAbilities();
+    AbilitySystemComponent->ApplyInitialEffects();
+    AbilitySystemComponent->GiveInitialAbilities();
 }
+
 void ACRCharacter::BindingChangeDelegate()
 {
-	UCRAbilitySystemComponent * ASC = GetCRAbilitySystemComponent();
-	if (IsValid(ASC))
-	{
-		//Tags binding
-		ASC->RegisterGameplayTagEvent(UGameplayTagsStatic::GetStunStatTag()).AddUObject(this,&ACRCharacter::OnStunTagChanged);
-		ASC->RegisterGameplayTagEvent(UGameplayTagsStatic::GetDeadStatTag()).AddUObject(this, &ACRCharacter::OnDeathTagChanged);
+    if (UCRAbilitySystemComponent* ASC = GetCRAbilitySystemComponent())
+    {
+        // Tag Event Binding
+        ASC->RegisterGameplayTagEvent(UGameplayTagsStatic::GetStunStatTag())
+           .AddUObject(this, &ACRCharacter::OnStunTagChanged);
 
-		
-		// Binding delegate
-		ASC
-		 ->GetGameplayAttributeValueChangeDelegate(UCRAttributeSet::GetSpeedAttribute())
-		 .AddUObject(this, &ACRCharacter::OnSpeedChanged);
+        ASC->RegisterGameplayTagEvent(UGameplayTagsStatic::GetDeadStatTag())
+           .AddUObject(this, &ACRCharacter::OnDeathTagChanged);
 
-		ASC->GetGameplayAttributeValueChangeDelegate(UCRAttributeSet::GetHealthAttribute())
-			.AddUObject(this, &ACRCharacter::UpdatedHealth);
-	
-	}
+        // Attribute Binding
+        ASC->GetGameplayAttributeValueChangeDelegate(UCRAttributeSet::GetSpeedAttribute())
+           .AddUObject(this, &ACRCharacter::OnSpeedChanged);
+
+        ASC->GetGameplayAttributeValueChangeDelegate(UCRAttributeSet::GetHealthAttribute())
+           .AddUObject(this, &ACRCharacter::UpdatedHealth);
+    }
 }
 
 void ACRCharacter::OnSpeedChanged(const FOnAttributeChangeData& OnAttributeChangeData)
 {
-	GetCharacterMovement()->MaxWalkSpeed = OnAttributeChangeData.NewValue;
+    GetCharacterMovement()->MaxWalkSpeed = OnAttributeChangeData.NewValue;
 }
-#pragma endregion 
-#pragma region Status
+
+//------------------------------------------------------------
+// Status Checks & Tags
+//------------------------------------------------------------
 bool ACRCharacter::IsDead() const
 {
-	if (!IsValid(GetCRAbilitySystemComponent()))
-	{
-		return false;
-	}
-	return GetCRAbilitySystemComponent()->HasMatchingGameplayTag(UGameplayTagsStatic::GetDeadStatTag());
+    return IsValid(GetCRAbilitySystemComponent()) &&
+           GetCRAbilitySystemComponent()->HasMatchingGameplayTag(UGameplayTagsStatic::GetDeadStatTag());
 }
 
 void ACRCharacter::OnStunTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
-	if (IsDead())
-	{
-		return;	
-	}
-	
-	if (NewCount != 0)
-	{
-		OnStun();
-	}
-	else
-	{
-		RecoverStun();
-	}
-	
+    if (IsDead()) return;
+
+    if (NewCount != 0) OnStun();
+    else RecoverStun();
 }
 
 void ACRCharacter::OnStun()
 {
-
+    //  client logic
 }
 
 void ACRCharacter::RecoverStun()
 {
-
+    //  client logic
 }
 
 void ACRCharacter::OnDeathTagChanged(FGameplayTag Tag, int32 NewCount)
 {
-	if (NewCount != 0)
-	{
-		OnDeath();
-	
-	}
+    if (NewCount != 0) OnDeath();
 }
 
 void ACRCharacter::OnDeath()
 {
-	
+    //client logic
 }
 
-void ACRCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData) 
+//------------------------------------------------------------
+// Health Handling
+//------------------------------------------------------------
+void ACRCharacter::UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData)
 {
-	if (!HasAuthority()) return;
+    if (!HasAuthority()) return;
 
-	float CurrentHealth = OnAttributeChangeData.NewValue;
+    float CurrentHealth = OnAttributeChangeData.NewValue;
 
-	if (CurrentHealth <= 0.f && !IsDead()) 
-	{
-		if (UCRAbilitySystemComponent* ASC = GetCRAbilitySystemComponent())
-		{
-			ASC->ApplyGameplayEffect(DeathEffect);
-		}
-		if (ACRPlayerCharacter* PlayerChar = Cast<ACRPlayerCharacter>(this))
-		{
-			PlayerChar->SendInstigatorEvent();
-		}
-	}
+    if (CurrentHealth <= 0.f && !IsDead())
+    {
+        if (UCRAbilitySystemComponent* ASC = GetCRAbilitySystemComponent())
+        {
+            ASC->ApplyGameplayEffect(DeathEffect);
+        }
+    }
 }
-
-
-#pragma endregion 
-
-

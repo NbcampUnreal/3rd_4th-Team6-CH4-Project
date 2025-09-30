@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -19,38 +17,31 @@ class COPANDROBBER_API ACRCharacter : public ACharacter, public IAbilitySystemIn
 	GENERATED_BODY()
 
 public:
-
+	// Constructor
 	ACRCharacter();
-	
 
-	
-protected:
-
-	virtual void ServerSideInit();
-		
-	virtual void BeginPlay() override;
-	
-
-#pragma  region  GAS
-public:
+	// Ability System Interface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UCRAbilitySystemComponent* GetCRAbilitySystemComponent() const;
-	
+
 protected:
-	bool IsAbilitySystemInitialized() const;
+	
+	virtual void BeginPlay() override;
+	virtual void ServerSideInit();
+
+	// GAS
+	virtual void BindingChangeDelegate();
 	void OnSpeedChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 	void OnStunTagChanged(FGameplayTag Tag, int32 NewCount);
 	void OnDeathTagChanged(FGameplayTag Tag, int32 NewCount);
-	virtual void BindingChangeDelegate();
-protected:
+
 	UPROPERTY(Transient)
 	TObjectPtr<UCRAbilitySystemComponent> AbilitySystemComponent;
+
 	UPROPERTY(Transient)
 	TObjectPtr<UCRAttributeSet> AttributeSet;
 
-#pragma endregion
-
-#pragma region Status
+	// Status & Health
 public:
 	virtual bool IsDead() const;
 	virtual void OnStun();
@@ -58,10 +49,7 @@ public:
 	virtual void OnDeath();
 	virtual void UpdatedHealth(const FOnAttributeChangeData& OnAttributeChangeData);
 
-
+protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UGameplayEffect> DeathEffect;
-#pragma endregion
-
-
 };

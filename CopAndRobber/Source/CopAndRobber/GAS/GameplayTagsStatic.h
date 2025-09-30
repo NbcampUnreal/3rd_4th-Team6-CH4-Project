@@ -20,6 +20,10 @@ public:
 
 	static FGameplayTag GetDeadStatTag();
 	static FGameplayTag GetStunStatTag();
+	
+	static FGameplayTag GetKillTag();
+
+	
 
 	static FGameplayTag GetGenericDamagePointTag();
 

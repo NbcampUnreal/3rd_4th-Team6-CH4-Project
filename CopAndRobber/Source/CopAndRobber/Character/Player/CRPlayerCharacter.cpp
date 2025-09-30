@@ -114,10 +114,7 @@ void ACRPlayerCharacter::OnRep_PlayerState()
 			
 		}
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[PossessedBy] PlayerState is Server NULL for %s"), *GetName());	
-	}
+	
 }
 
 void ACRPlayerCharacter::BindingChangeDelegate()
@@ -125,24 +122,14 @@ void ACRPlayerCharacter::BindingChangeDelegate()
 	Super::BindingChangeDelegate();
 	GetCRAbilitySystemComponent()->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &ACRPlayerCharacter::OnEffectAdded);
 	GetCRAbilitySystemComponent()->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &ACRPlayerCharacter::OnGameplayEffectRemoved);
+	
 	if (HasAuthority())
 	{
-		GetCRAbilitySystemComponent()->GenericGameplayEventCallbacks.FindOrAdd(UGameplayTagsStatic::GetDeadStatTag()).AddUObject(this, &ACRPlayerCharacter::OnEnemyKilled);
-	}
-
-}
-
-void ACRPlayerCharacter::OnEnemyKilled(const FGameplayEventData* Payload)
-{
-	if (Payload && Payload->Instigator == this)
-	{
-		ACRPlayerState* PS = GetPlayerState<ACRPlayerState>();
-		if (PS)
-		{
-			PS->AddKill();
-		}
+		AttributeSet->OnDeath.AddUObject(this , &ACRPlayerCharacter::HandleDeath);
 	}
 }
+
+
 
 void ACRPlayerCharacter::OnEffectAdded(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& EffectSpec,
                                        FActiveGameplayEffectHandle EffectHandle)
@@ -168,37 +155,25 @@ void ACRPlayerCharacter::OnEffectAdded(UAbilitySystemComponent* ASC, const FGame
 	}
 }
 
-void ACRPlayerCharacter::SendInstigatorEvent()
+void ACRPlayerCharacter::HandleDeath(AActor* DeadActor, AActor* InstigatorActor) // 서버에서만 해야하는 death  
 {
-	if (UCRAbilitySystemComponent* ASC = GetCRAbilitySystemComponent())
-	{
-		ASC->ApplyGameplayEffect(DeathEffect);
-          
-	
-		FGameplayEventData DeathEventData;
-		DeathEventData.Target = this;
-		DeathEventData.Instigator = LastDamageInstigator; 
-          
-		ASC->HandleGameplayEvent(
-		   UGameplayTagsStatic::GetDeadStatTag(),
-		   &DeathEventData
-		);
-          
+	if (!InstigatorActor || InstigatorActor == this) return;
 
-		if (LastDamageInstigator)
+	if (!HasAuthority()) return;
+
+	ACRPlayerCharacter* KillerChar = nullptr;
+	KillerChar = Cast<ACRPlayerCharacter>(InstigatorActor);
+
+	if (KillerChar)
+	{
+		if (ACRPlayerState* KillerPS = KillerChar->GetPlayerState<ACRPlayerState>())
 		{
-			UAbilitySystemComponent* InstigatorASC = 
-			   UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(LastDamageInstigator);
-			if (InstigatorASC)
-			{
-				InstigatorASC->HandleGameplayEvent(
-				   UGameplayTagsStatic::GetDeadStatTag(),
-				   &DeathEventData
-				);
-			}
+			KillerPS->AddKill();
 		}
 	}
+
 }
+
 
 void ACRPlayerCharacter::OnGameplayEffectRemoved(const FActiveGameplayEffect& ActiveEffect)
 {
@@ -315,7 +290,7 @@ void ACRPlayerCharacter::HandleReadyAction(const FInputActionValue& Value)
 
 void ACRPlayerCharacter::HandleAbilityPressedAction(const FInputActionValue& Value, ECRAbilityInputID Key)
 {
-	// IsValid() 함수로 안전하게 체크
+	
 	if (!IsValid(AbilitySystemComponent))
 	{
 		return;
@@ -411,15 +386,9 @@ void ACRPlayerCharacter::RecoverStun()
 		PC->SetIgnoreMoveInput(false);
 	}
 }
-void ACRPlayerCharacter::OnDeath()
+void ACRPlayerCharacter::OnDeath() //클라 
 {
 	Super::OnDeath();
-
-	ACRGameMode* GameMode = GetWorld()->GetAuthGameMode<ACRGameMode>();
-	if (GameMode)
-	{
-		GameMode->PlayerDied(GetPlayerState<ACRPlayerState>());
-	}
 
 	if (IsLocallyControlled())
 	{
