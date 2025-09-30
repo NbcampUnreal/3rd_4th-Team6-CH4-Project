@@ -45,7 +45,7 @@ public:
 	TSubclassOf<UCRBattleHUDWidget> BattleWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UCRPlayerResultWidget> ResultWidgetClass;
+	TSubclassOf<class UCRPlayerResultWidget> ResultWidgetClass;
 public:
 	void UpdateBuffUI(const FGameplayTag& Tag, int Count);
 	void RemoveBuffUI(const FGameplayTag& Tag);

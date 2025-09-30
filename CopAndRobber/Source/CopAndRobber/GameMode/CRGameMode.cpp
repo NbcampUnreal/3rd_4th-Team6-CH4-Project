@@ -33,6 +33,8 @@ void ACRGameMode::StartPlay()
 
 void ACRGameMode::BeginGame()
 {
+	DeadPlayerCount = 0;
+
 	// GameState에 있는 컴포넌트를 통해 자기장 카운트다운 시작
 	if (CRGameState->ZoneCountdownComponent)
 	{
@@ -185,10 +187,10 @@ void ACRGameMode::PlayerDied(ACRPlayerState* Player)
 
 	if (Player)
 	{
-        // 플레이어 사망
         Player->SetIsAlive(false);
+        DeadPlayerCount++;
+        Player->SetDeathOrder(DeadPlayerCount);
 
-        // 점수판 재계산
         CalculateAndSetRanks();
 	}
 
@@ -241,7 +243,6 @@ void ACRGameMode::CalculateAndSetRanks()
 {
     if (!CRGameState)
     {
-        UE_LOG(LogTemp, Error, TEXT("CalculateAndSetRanks: CRGameState is null."));
         return;
     }
 
@@ -265,25 +266,20 @@ void ACRGameMode::CalculateAndSetRanks()
         }
     }
 
-    // 생존해있는 플레이어를 정렬합니다(킬 수)
+    // 생존해있는 플레이어를 정렬합니다(킬 수 내림차순)
     AlivePlayers.Sort([](const ACRPlayerState& A, const ACRPlayerState& B)
     {
         if (A.Kills != B.Kills)
         {
             return A.Kills > B.Kills;
         }
-    	// 킬 수가 같을 경우 이름 순으로 정렬됩니다
         return A.GetPlayerName() < B.GetPlayerName();
     });
 
-    // 사망한 플레이어를 정렬합니다
+    // 사망한 플레이어를 정렬합니다 (사망 순서 내림차순)
     DeadPlayers.Sort([](const ACRPlayerState& A, const ACRPlayerState& B)
     {
-        if (A.Kills != B.Kills)
-        {
-            return A.Kills > B.Kills;
-        }
-        return A.GetPlayerName() < B.GetPlayerName();
+        return A.DeathOrder > B.DeathOrder;
     });
 
 	// 순위를 할당합니다

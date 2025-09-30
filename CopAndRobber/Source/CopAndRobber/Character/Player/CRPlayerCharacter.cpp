@@ -157,6 +157,12 @@ void ACRPlayerCharacter::OnEffectAdded(UAbilitySystemComponent* ASC, const FGame
 
 void ACRPlayerCharacter::HandleDeath(AActor* DeadActor, AActor* InstigatorActor) // 서버에서만 해야하는 death  
 {
+	ACRGameMode* GameMode = GetWorld()->GetAuthGameMode<ACRGameMode>();
+	if (GameMode)
+	{
+		GameMode->PlayerDied(GetPlayerState<ACRPlayerState>());
+	}
+
 	if (!InstigatorActor || InstigatorActor == this) return;
 
 	if (!HasAuthority()) return;

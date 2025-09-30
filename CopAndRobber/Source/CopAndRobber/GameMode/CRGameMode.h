@@ -41,4 +41,7 @@ private:
 	FTimerHandle RankUpdateTimerHandle;
 	UPROPERTY(EditDefaultsOnly, Category = "Ranking")
 	float RankUpdateInterval = 5.0f; // Update ranks every 5 seconds
+
+	UPROPERTY()
+	int32 DeadPlayerCount = 0;
 };
