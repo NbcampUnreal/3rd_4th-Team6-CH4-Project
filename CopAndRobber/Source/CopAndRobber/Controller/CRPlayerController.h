@@ -46,6 +46,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UCRPlayerResultWidget> ResultWidgetClass;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UCRPlayerResultWidget> ResultWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> EscapeMenuClass;
+	
 public:
 	void UpdateBuffUI(const FGameplayTag& Tag, int Count);
 	void RemoveBuffUI(const FGameplayTag& Tag);
@@ -59,9 +66,15 @@ public:
 	void Server_ToggleReady();
 	UFUNCTION(Server, Reliable)
 	void Server_SetNickname(const FString& NewNickname);
+
+	
 protected:
 	void BindingBattleHUD();
+	virtual void SetupInputComponent() override;
+	
 private:
+	void HandleEscapePressed();
+	
 	UPROPERTY()
 	TObjectPtr<UUserWidget> TitleWidgetInstance;
 
@@ -73,6 +86,10 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UCRPlayerResultWidget> ResultWidgetInstance;
+
+	UPROPERTY()
+	TObjectPtr<UUserWidget> EscapeMenuInstance;
+	
 #pragma endregion
 	FString PendingNickname;
 };

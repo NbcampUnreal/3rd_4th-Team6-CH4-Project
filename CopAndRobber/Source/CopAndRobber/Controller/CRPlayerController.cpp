@@ -214,3 +214,52 @@ void ACRPlayerController::RemoveBuffUI(const FGameplayTag& Tag)
 		BattleWidgetInstance->RemoveBuffSlot(Tag);
 	}
 }
+
+void ACRPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	
+	// ESC 키 입력 바인딩
+	InputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &ACRPlayerController::HandleEscapePressed);
+}
+
+void ACRPlayerController::HandleEscapePressed()
+{
+	FString MapName = GetWorld()->GetMapName();
+
+	UE_LOG(LogTemp, Warning, TEXT("SetupInputComponent called")); // 로그 찍어보기
+	// ✅ 로비에서만 ESC 허용
+	if (!MapName.Contains(TEXT("TestLobbyLevel")))
+	{
+		return;
+	}
+
+	if (!GetWorld()->GetMapName().Contains(TEXT("TestLobbyLevel")))
+		return;
+	
+	if (EscapeMenuInstance && EscapeMenuInstance->IsInViewport())
+	{
+		// ESC 메뉴 닫기
+		EscapeMenuInstance->RemoveFromParent();
+		EscapeMenuInstance = nullptr;
+
+		SetInputMode(FInputModeGameOnly());
+		bShowMouseCursor = false;
+	}
+	else if (EscapeMenuClass)
+	{
+		// ESC 메뉴 열기
+		EscapeMenuInstance = CreateWidget<UUserWidget>(this, EscapeMenuClass);
+		if (EscapeMenuInstance)
+		{
+			EscapeMenuInstance->AddToViewport();
+
+			FInputModeGameAndUI InputMode;
+			InputMode.SetHideCursorDuringCapture(false);
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			SetInputMode(InputMode);
+			bShowMouseCursor = true;
+
+		}
+	}
+}
