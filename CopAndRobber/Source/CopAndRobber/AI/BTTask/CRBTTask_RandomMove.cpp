@@ -23,36 +23,64 @@ EBTNodeResult::Type UCRBTTask_RandomMove::ExecuteTask(UBehaviorTreeComponent& Ow
     {
         return EBTNodeResult::Failed;
     }
+    
     UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(AICon->GetWorld());
     if (!NavSys)
     {
         return EBTNodeResult::Failed;
     }
+    
     CurrentWaitTime = 0.0f;
     StuckTimer = 0.0f;
     LastLocation = AIPawn->GetActorLocation();
+    
     FNavLocation RandomLocation;
-    if (NavSys->GetRandomReachablePointInRadius(AIPawn->GetActorLocation(), MaxMoveRadius, RandomLocation))
+    int32 MaxAttempts = 5;
+    bool bFoundValidLocation = false;
+    
+    for (int32 i = 0; i < MaxAttempts; i++)
     {
-        float Distance = FVector::Dist(AIPawn->GetActorLocation(), RandomLocation.Location);
-        if (Distance >= MinMoveDistance)
+        if (NavSys->GetRandomReachablePointInRadius(AIPawn->GetActorLocation(), MaxMoveRadius, RandomLocation))
         {
-            EPathFollowingRequestResult::Type MoveResult = AICon->MoveToLocation(
-                RandomLocation.Location,
-                AcceptanceRadius
-            );
-
-            if (MoveResult == EPathFollowingRequestResult::Failed)
+            float Distance = FVector::Dist(AIPawn->GetActorLocation(), RandomLocation.Location);
+            
+            if (Distance >= MinMoveDistance)
             {
-                return EBTNodeResult::Failed;
+                FNavLocation ProjectedLocation;
+                if (NavSys->ProjectPointToNavigation(RandomLocation.Location, ProjectedLocation, FVector(100.0f, 100.0f, 100.0f)))
+                {
+                    bFoundValidLocation = true;
+                    RandomLocation = ProjectedLocation;
+                    break;
+                }
             }
-
-            return EBTNodeResult::InProgress;
         }
     }
+    
+    if (!bFoundValidLocation)
+    {
+        return EBTNodeResult::Failed;
+    }
 
-    return EBTNodeResult::Failed;
+    EPathFollowingRequestResult::Type MoveResult = AICon->MoveToLocation(
+        RandomLocation.Location,
+        AcceptanceRadius,
+        true,   
+        true,  
+        true,   
+        true,  
+        nullptr,
+        true    
+    );
+
+    if (MoveResult == EPathFollowingRequestResult::Failed)
+    {
+        return EBTNodeResult::Failed;
+    }
+
+    return EBTNodeResult::InProgress;
 }
+
 void UCRBTTask_RandomMove::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
     ACRAIController* AICon = Cast<ACRAIController>(OwnerComp.GetAIOwner());
@@ -61,17 +89,13 @@ void UCRBTTask_RandomMove::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
         FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
         return;
     }
+    
     UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
+    
     if (BBComp && BBComp->GetValueAsBool(ACRAIController::BBKey_bIsPlayerDetected))
     {
+        AICon->StopMovement();
         FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-        return;
-    }
-
-    CurrentWaitTime += DeltaSeconds;
-    if (CurrentWaitTime >= MaxWaitTime)
-    {
-        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
         return;
     }
 
@@ -92,31 +116,44 @@ void UCRBTTask_RandomMove::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
     
     if (Status == EPathFollowingStatus::Paused)
     {
-        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+        AICon->StopMovement();
+        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
         return;
     }
 
     APawn* AIPawn = AICon->GetPawn();
-    if (AIPawn)
+    if (!AIPawn)
     {
-        FVector CurrentLocation = AIPawn->GetActorLocation();
-        float MovedDistance = FVector::Dist(CurrentLocation, LastLocation);
-        
-        if (MovedDistance < 10.0f)
-        {
-            StuckTimer += DeltaSeconds;
-            
-            if (StuckTimer >= StuckCheckTime)
-            {
-                FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-                return;
-            }
-        }
-        else
-        {
-            StuckTimer = 0.0f;
-        }
-        
-        LastLocation = CurrentLocation;
+        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+        return;
     }
+
+    FVector CurrentLocation = AIPawn->GetActorLocation();
+    float MovedDistance = FVector::Dist(CurrentLocation, LastLocation);
+    
+    if (MovedDistance < StuckDistanceThreshold)
+    {
+        StuckTimer += DeltaSeconds;
+        
+        if (StuckTimer >= StuckCheckTime)
+        {
+            AICon->StopMovement();
+            FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+            return;
+        }
+    }
+    else
+    {
+        StuckTimer = 0.0f;
+    }
+    
+    CurrentWaitTime += DeltaSeconds;
+    if (CurrentWaitTime >= MaxWaitTime)
+    {
+        AICon->StopMovement();
+        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+        return;
+    }
+    
+    LastLocation = CurrentLocation;
 }

@@ -1,5 +1,4 @@
 #include "CRAICharacter.h"
-#include "AI/AICharacter/CRAICharacter.h"
 #include "GAS/CRAbilitySystemComponent.h"
 #include "GAS/Attribute/CRAttributeSet.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -24,8 +23,22 @@ void ACRAICharacter::BeginPlay()
         InitializeAI();
     }
 
-    GetCharacterMovement()->bOrientRotationToMovement = true;
     bUseControllerRotationYaw = false;
+
+    UCharacterMovementComponent* MovementComp = GetCharacterMovement();
+    if (MovementComp)
+    {
+        MovementComp->bOrientRotationToMovement = true;
+        MovementComp->bUseControllerDesiredRotation = false;
+        MovementComp->bUseRVOAvoidance = true;
+        MovementComp->AvoidanceConsiderationRadius = 400.0f;
+        MovementComp->AvoidanceWeight = 0.7f;
+        
+        MovementComp->SetAvoidanceGroup(1);
+        MovementComp->SetGroupsToAvoid(1);
+        MovementComp->SetGroupsToIgnore(0);
+        
+    }
 }
 
 

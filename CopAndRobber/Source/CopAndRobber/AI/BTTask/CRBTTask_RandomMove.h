@@ -18,7 +18,7 @@ protected:
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
-    float AcceptanceRadius = 50.0f;
+    float AcceptanceRadius = 150.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
     float MaxMoveRadius = 1500.0f;
@@ -26,12 +26,15 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
     float MinMoveDistance = 300.0f;
 
-
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
     float MaxWaitTime = 5.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
-    float StuckCheckTime =1.0f;
+    float StuckCheckTime = 1.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
+    float StuckDistanceThreshold = 10.0f;
 
 private:
     float CurrentWaitTime;
