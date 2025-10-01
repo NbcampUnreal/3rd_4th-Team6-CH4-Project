@@ -37,6 +37,7 @@ void ACRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	
 	DOREPLIFETIME(ThisClass, Kills);
 	DOREPLIFETIME(ThisClass, bIsAlive);
+	DOREPLIFETIME(ACRPlayerState, Nickname);
 }
 
 
@@ -85,3 +86,25 @@ void ACRPlayerState::OnRep_bIsReady()
 	}
 }
 
+void ACRPlayerState::Server_SetNickname_Implementation(const FString& NewNickname)
+{
+	Nickname = NewNickname;
+	OnRep_Nickname(); // 즉시 UI 반영
+}
+
+void ACRPlayerState::OnRep_Nickname()
+{
+	UE_LOG(LogTemp, Log, TEXT("닉네임 동기화됨: %s"), *Nickname);
+
+	// 강제 새로고침
+	TArray<UUserWidget*> FoundWidgets;
+	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), FoundWidgets, UCRLobbyWidget::StaticClass(), false);
+
+	for (UUserWidget* Widget : FoundWidgets)
+	{
+		if (UCRLobbyWidget* LobbyWidget = Cast<UCRLobbyWidget>(Widget))
+		{
+			LobbyWidget->RefreshPlayerList();
+		}
+	}
+}

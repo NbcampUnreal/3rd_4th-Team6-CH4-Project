@@ -55,6 +55,12 @@ public:
 	void SetIsAlive(bool bAlive) { if (GetLocalRole() == ROLE_Authority) bIsAlive = bAlive; }
 
 	FPlayerRankInfo FindPlayerRankInfo();
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetNickname(const FString& NewNickname);
+
+	UFUNCTION(BlueprintCallable)
+	FString GetNickname() const { return Nickname; }
 	
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "GAS")
@@ -68,5 +74,11 @@ protected:
 
 	UFUNCTION()
 	void OnRep_bIsReady();
+
+	UPROPERTY(ReplicatedUsing=OnRep_Nickname)
+	FString Nickname;
+	
+	UFUNCTION()
+	void OnRep_Nickname();
 	
 };

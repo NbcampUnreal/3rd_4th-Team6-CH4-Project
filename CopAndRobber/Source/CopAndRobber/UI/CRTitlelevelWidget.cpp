@@ -5,6 +5,7 @@
 #include "Controller/CRPlayerController.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "GameFramework/PlayerController.h"
+#include "GameMode/CRGameInstance.h"
 
 UCRTitlelevelWidget::UCRTitlelevelWidget(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -73,14 +74,12 @@ void UCRTitlelevelWidget::OnConfirmButtonClicked()
 	{
 		ServerIP = TEXT("127.0.0.1:17777");
 	}
-
-	APlayerController* PlayerController = GetOwningPlayer();
-	if (!PlayerController)
+	if (UCRGameInstance* GI = Cast<UCRGameInstance>(GetGameInstance()))
 	{
-		return;
+		GI->SetPlayerNickname(Nickname);
 	}
-	FString URL = FString::Printf(TEXT("%s?Name=%s"), *ServerIP, *Nickname);
-	if (ACRPlayerController* CRController = Cast<ACRPlayerController>(PlayerController))
+	
+	if (ACRPlayerController* CRController = Cast<ACRPlayerController>(GetOwningPlayer()))
 	{
 		CRController->JoinServer(ServerIP, Nickname);
 	}

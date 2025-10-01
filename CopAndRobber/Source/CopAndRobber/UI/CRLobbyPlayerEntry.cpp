@@ -6,13 +6,19 @@
 void UCRLobbyPlayerEntry::Init(APlayerState* PlayerState)
 {
 	if (!PlayerState) return;
-
-	FString Nickname = PlayerState->GetPlayerName();
+	
 	bool bIsReady = false;
+	FString Nickname = TEXT("알 수 없음");
 
 	if (ACRPlayerState* CRState = Cast<ACRPlayerState>(PlayerState))
 	{
+		Nickname = CRState->GetNickname(); // ✅ 커스텀 닉네임 사용
 		bIsReady = CRState->bIsReady;
+	}
+	else
+	{
+		// Fallback (안정성용)
+		Nickname = PlayerState->GetPlayerName();
 	}
 
 	if (TextBlock_Nickname)

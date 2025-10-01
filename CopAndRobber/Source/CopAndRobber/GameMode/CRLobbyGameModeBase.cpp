@@ -3,6 +3,7 @@
 #include "GameMode/CRLobbyGameStateBase.h" // ✅ LobbyGameStateBase 포함
 #include "GameFramework/GameStateBase.h"
 #include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
 
 ACRLobbyGameModeBase::ACRLobbyGameModeBase()
 {
@@ -14,10 +15,16 @@ void ACRLobbyGameModeBase::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	UE_LOG(LogTemp, Log, TEXT("Player %s joined lobby"), *NewPlayer->GetName());
+	if (APlayerState* PS = NewPlayer->GetPlayerState<APlayerState>())
+	{
+		FString Nickname = PS->GetPlayerName();
+		UE_LOG(LogTemp, Log, TEXT("Player joined lobby with nickname: %s"), *Nickname);
+	}
 
 	CheckAllPlayersReady();
 }
+
+
 
 void ACRLobbyGameModeBase::CheckAllPlayersReady()
 {
@@ -32,7 +39,6 @@ void ACRLobbyGameModeBase::CheckAllPlayersReady()
 			if (CRPS->bIsReady)
 			{
 				ReadyCount++;
-				UE_LOG(LogTemp, Log, TEXT("%d"), ReadyCount);
 			}
 		}
 	}

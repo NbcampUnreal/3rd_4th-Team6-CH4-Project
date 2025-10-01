@@ -16,6 +16,7 @@
 #include "UI/CRLobbyWidget.h"
 #include "UI/CRPlayerResultWidget.h"
 #include "GameFramework/PlayerState.h"
+#include "GameMode/CRGameInstance.h"
 #include "GameMode/CRGameMode.h"
 #include "GameMode/CRLobbyGameModeBase.h"
 #include "GameMode/CRPlayerState.h"
@@ -24,7 +25,7 @@ void ACRPlayerController::Client_SetupInput_Implementation(UCRPlayerInputConfig*
 {
 	if (!InPlayerInputConfig)
 		return;
-
+	
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		if (InPlayerInputConfig->DefaultMappingContext)
@@ -38,6 +39,19 @@ void ACRPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (!HasAuthority())
+	{
+		UCRGameInstance* CRGI = Cast<UCRGameInstance>(GetGameInstance());
+		if (CRGI)
+		{
+			const FString Nickname = CRGI->GetPlayerNickname();
+			if (!Nickname.IsEmpty())
+			{
+				Server_SetNickname(Nickname);
+			}
+		}
+	}
+	
 	if (!IsLocalController())
 		return;
 
@@ -166,19 +180,21 @@ void ACRPlayerController::BindingBattleHUD()
 
 void ACRPlayerController::JoinServer(const FString& Address, const FString& Nickname)
 {
-	PendingNickname = Nickname;
-	FString Options = FString::Printf(TEXT("?Name=%s"), *Nickname);
-	UGameplayStatics::OpenLevel(GetWorld(), FName(*Address), true, Options);
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*Address), true);
 }
 
-void ACRPlayerController::Server_SetNickname_Implementation(const FString& NewNickname)
+
+void ACRPlayerController::Server_SetNickname_Implementation(const FString& Nickname)
 {
-	if (APlayerState* PS = GetPlayerState<APlayerState>())
+	if (ACRPlayerState* CRPS = GetPlayerState<ACRPlayerState>())
 	{
-		PS->SetPlayerName(NewNickname);
-		UE_LOG(LogTemp, Log, TEXT("서버에서 닉네임 설정됨: %s"), *NewNickname);
+		CRPS->Server_SetNickname(Nickname); 
+		CRPS->SetPlayerName(Nickname); 
+		UE_LOG(LogTemp, Log, TEXT("서버에 닉네임 설정됨: %s"), *Nickname);
 	}
 }
+
+
 
 void ACRPlayerController::Server_ToggleReady_Implementation()
 {

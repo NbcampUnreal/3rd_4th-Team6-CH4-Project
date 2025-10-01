@@ -6,6 +6,7 @@
 #include "UI/CRLobbyPlayerEntry.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
+#include "GameMode/CRLobbyGameStateBase.h"
 
 void UCRLobbyWidget::NativeConstruct()
 {
@@ -35,12 +36,7 @@ void UCRLobbyWidget::NativeConstruct()
 
 void UCRLobbyWidget::RefreshPlayerList()
 {
-	if (!ScrollBox_PlayerList)
-	{
-		return;
-	}
-
-	if (!LobbyPlayerEntryClass)
+	if (!ScrollBox_PlayerList || !LobbyPlayerEntryClass)
 	{
 		return;
 	}
@@ -58,8 +54,10 @@ void UCRLobbyWidget::RefreshPlayerList()
 
 	if (TextBlock_PlayerCount)
 	{
+		const int32 PlayerCount = GameState ? GameState->PlayerArray.Num() : 0;
+
 		TextBlock_PlayerCount->SetText(FText::FromString(
-			FString::Printf(TEXT("접속 인원: %d명"), Players.Num())
+			FString::Printf(TEXT("접속 인원: %d명"), PlayerCount)
 		));
 	}
 
