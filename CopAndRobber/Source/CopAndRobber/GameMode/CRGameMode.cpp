@@ -194,18 +194,10 @@ void ACRGameMode::PlayerDied(ACRPlayerState* Player)
         CalculateAndSetRanks();
 	}
 
-	// 생존한 플레이어를 기준으로 게임 종료 조건 체크
-	int32 AlivePlayerCount = 0;
-	for (APlayerState* PS : GameState->PlayerArray)
-	{
-		if (ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS))
-		{
-			if (CRPS->bIsAlive)
-			{
-				AlivePlayerCount++;
-			}
-		}
-	}
+	// 보다 안정적인 게임 종료 조건 체크
+	int32 TotalPlayerCount = GameState->PlayerArray.Num();
+	int32 AlivePlayerCount = TotalPlayerCount - DeadPlayerCount;
+
 
 	// 생존한 플레이어 숫자가 1명 이하일 경우 게임 종료
 	if (AlivePlayerCount <= 1)
@@ -262,45 +254,44 @@ void ACRGameMode::CalculateAndSetRanks()
         return;
     }
 
-    TArray<FPlayerRankInfo> CurrentRanks;
-    TArray<ACRPlayerState*> AlivePlayers;
-    TArray<ACRPlayerState*> DeadPlayers;
-
-    // 플레이어 데이터를 수집해서 생존, 사망을 구분합니다
+    TArray<ACRPlayerState*> AllPlayerStates;
     for (APlayerState* PS : GameState->PlayerArray)
     {
         if (ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS))
         {
-            if (CRPS->bIsAlive)
-            {
-                AlivePlayers.Add(CRPS);
-            }
-            else
-            {
-                DeadPlayers.Add(CRPS);
-            }
+            AllPlayerStates.Add(CRPS);
         }
     }
 
-    // 생존해있는 플레이어를 정렬합니다(킬 수 내림차순)
-    AlivePlayers.Sort([](const ACRPlayerState& A, const ACRPlayerState& B)
+    // 모든 플레이어를 하나의 복합적인 기준으로 정렬합니다.
+    AllPlayerStates.Sort([](const ACRPlayerState& A, const ACRPlayerState& B)
     {
-        if (A.Kills != B.Kills)
+        // 1. 생존 여부로 정렬 (산 사람이 무조건 우선)
+        if (A.bIsAlive != B.bIsAlive)
         {
-            return A.Kills > B.Kills;
+            return A.bIsAlive; // bIsAlive가 true(1)인 쪽이 먼저 옴
         }
-        return A.GetPlayerName() < B.GetPlayerName();
+
+        // 2. 둘 다 살아있다면, 이름순으로 정렬 (순위 영향 없음, 일관성 목적)
+        if (A.bIsAlive)
+        {
+            return A.GetPlayerName() < B.GetPlayerName();
+        }
+        // 3. 둘 다 죽었다면, DeathOrder로 정렬 (내림차순 - 나중에 죽은 사람이 순위가 높음)
+        else
+        {
+            if (A.DeathOrder != B.DeathOrder)
+            {
+                return A.DeathOrder > B.DeathOrder;
+            }
+            return A.GetPlayerName() < B.GetPlayerName();
+        }
     });
 
-    // 사망한 플레이어를 정렬합니다 (사망 순서 내림차순)
-    DeadPlayers.Sort([](const ACRPlayerState& A, const ACRPlayerState& B)
-    {
-        return A.DeathOrder > B.DeathOrder;
-    });
-
-	// 순위를 할당합니다
+    // 정렬된 목록에 따라 순위를 할당합니다.
+    TArray<FPlayerRankInfo> CurrentRanks;
     int32 CurrentRank = 1;
-    for (ACRPlayerState* CRPS : AlivePlayers)
+    for (ACRPlayerState* CRPS : AllPlayerStates)
     {
         FPlayerRankInfo RankInfo;
         RankInfo.PlayerName = CRPS->GetPlayerName();
@@ -309,17 +300,7 @@ void ACRGameMode::CalculateAndSetRanks()
         RankInfo.bIsAlive = CRPS->bIsAlive;
         CurrentRanks.Add(RankInfo);
     }
-	
-    for (ACRPlayerState* CRPS : DeadPlayers)
-    {
-        FPlayerRankInfo RankInfo;
-        RankInfo.PlayerName = CRPS->GetPlayerName();
-        RankInfo.Rank = CurrentRank++;
-        RankInfo.Kills = CRPS->Kills;
-        RankInfo.bIsAlive = CRPS->bIsAlive;
-        CurrentRanks.Add(RankInfo);
-    }
-	
+
     CRGameState->PlayerRanks = CurrentRanks;
     CRGameState->NumPlayers = GameState->PlayerArray.Num(); // Update total players
 }
