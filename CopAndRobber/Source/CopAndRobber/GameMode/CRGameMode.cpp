@@ -190,14 +190,11 @@ void ACRGameMode::PlayerDied(ACRPlayerState* Player)
         Player->SetIsAlive(false);
         DeadPlayerCount++;
         Player->SetDeathOrder(DeadPlayerCount);
-
         CalculateAndSetRanks();
 	}
 
-	// 보다 안정적인 게임 종료 조건 체크
 	int32 TotalPlayerCount = GameState->PlayerArray.Num();
 	int32 AlivePlayerCount = TotalPlayerCount - DeadPlayerCount;
-
 
 	// 생존한 플레이어 숫자가 1명 이하일 경우 게임 종료
 	if (AlivePlayerCount <= 1)
@@ -208,30 +205,35 @@ void ACRGameMode::PlayerDied(ACRPlayerState* Player)
 
 void ACRGameMode::EndGame()
 {
-	if (!CRGameState)
-	{
-		return;
-	}
+
 	CRGameState->GamePhase = EGamePhase::GameFinished;
-	
+
     GetWorldTimerManager().ClearTimer(RankUpdateTimerHandle);
-
-    // 최종 점수판 계산
+	
     CalculateAndSetRanks();
-
-	// Find winner and show result HUD
+	
+	// 서버에서 계산한 정확한 순위 정보를 RPC로 직접 전달
+	int32 ShowCount = 0;
 	for (APlayerState* PS : GameState->PlayerArray)
 	{
 		if (ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS))
 		{
-			if (CRPS->bIsAlive)
+			ACRPlayerController* PC = Cast<ACRPlayerController>(CRPS->GetPlayerController());
+			if (PC)
 			{
-				ACRPlayerController* PC = Cast<ACRPlayerController>(CRPS->GetPlayerController());
-				if (PC)
+				FPlayerRankInfo* FoundRank = CRGameState->PlayerRanks.FindByPredicate([&](const FPlayerRankInfo& Info)
 				{
-					PC->Client_ShowResultHUD();
+					return Info.PlayerName == CRPS->GetPlayerName();
+				});
+				if (FoundRank)
+				{
+					// 서버의 정확한 순위 정보를 RPC로 전달
+					PC->Client_ShowResultHUD(*FoundRank, CRGameState->NumPlayers);
+					ShowCount++;
 				}
+			
 			}
+			
 		}
 	}
 
@@ -241,6 +243,7 @@ void ACRGameMode::EndGame()
 		UWorld* World = GetWorld();
 		if (World)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[EndGame] Traveling to Title Level"));
 			// 게임이 끝나고 로비 화면으로 돌아가는 로직입니다. 로비 부분을 넣어주면 됩니다
 			World->ServerTravel("/Game/Map/TitleLevel?listen", true);
 		}
@@ -249,58 +252,62 @@ void ACRGameMode::EndGame()
 
 void ACRGameMode::CalculateAndSetRanks()
 {
-    if (!CRGameState)
-    {
-        return;
-    }
+	if (!CRGameState)
+	{
+		return;
+	}
 
-    TArray<ACRPlayerState*> AllPlayerStates;
-    for (APlayerState* PS : GameState->PlayerArray)
-    {
-        if (ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS))
-        {
-            AllPlayerStates.Add(CRPS);
-        }
-    }
+	TArray<ACRPlayerState*> AllPlayerStates;
+	for (APlayerState* PS : GameState->PlayerArray)
+	{
+		if (ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS))
+		{
+			AllPlayerStates.Add(CRPS);
+		}
+	}
 
-    // 모든 플레이어를 하나의 복합적인 기준으로 정렬합니다.
-    AllPlayerStates.Sort([](const ACRPlayerState& A, const ACRPlayerState& B)
-    {
-        // 1. 생존 여부로 정렬 (산 사람이 무조건 우선)
-        if (A.bIsAlive != B.bIsAlive)
-        {
-            return A.bIsAlive; // bIsAlive가 true(1)인 쪽이 먼저 옴
-        }
+	// 배틀로얄 순위 계산: 살아있는 사람이 1등, 나중에 죽은 사람이 높은 순위
+	// 정렬 순서: 살아있음 > 죽음 (DeathOrder 높은 순)
+	AllPlayerStates.Sort([](const ACRPlayerState& A, const ACRPlayerState& B)
+	{
+		// 1. 생존 여부로 정렬 (살아있는 사람이 먼저)
+		if (A.bIsAlive != B.bIsAlive)
+		{
+			return A.bIsAlive; // true가 먼저 옴
+		}
 
-        // 2. 둘 다 살아있다면, 이름순으로 정렬 (순위 영향 없음, 일관성 목적)
-        if (A.bIsAlive)
-        {
-            return A.GetPlayerName() < B.GetPlayerName();
-        }
-        // 3. 둘 다 죽었다면, DeathOrder로 정렬 (내림차순 - 나중에 죽은 사람이 순위가 높음)
-        else
-        {
-            if (A.DeathOrder != B.DeathOrder)
-            {
-                return A.DeathOrder > B.DeathOrder;
-            }
-            return A.GetPlayerName() < B.GetPlayerName();
-        }
-    });
+		// 2. 둘 다 살아있다면, 킬 수로 정렬 (킬이 많은 사람이 먼저)
+		if (A.bIsAlive)
+		{
+			if (A.Kills != B.Kills)
+			{
+				return A.Kills > B.Kills; // 킬 많은 사람이 먼저
+			}
+			return A.GetPlayerName() < B.GetPlayerName(); // 이름순
+		}
+		// 3. 둘 다 죽었다면, DeathOrder로 정렬 (나중에 죽은 사람이 먼저)
+		else
+		{
+			if (A.DeathOrder != B.DeathOrder)
+			{
+				return A.DeathOrder > B.DeathOrder; 
+			}
+			return A.GetPlayerName() < B.GetPlayerName(); // 이름순
+		}
+	});
+	
+	TArray<FPlayerRankInfo> CurrentRanks;
+	int32 CurrentRank = 1;
+	for (ACRPlayerState* CRPS : AllPlayerStates)
+	{
+		FPlayerRankInfo RankInfo;
+		RankInfo.PlayerName = CRPS->GetPlayerName();
+		RankInfo.Rank = CurrentRank++;
+		RankInfo.Kills = CRPS->Kills;
+		RankInfo.bIsAlive = CRPS->bIsAlive;
+		CurrentRanks.Add(RankInfo);
+	}
 
-    // 정렬된 목록에 따라 순위를 할당합니다.
-    TArray<FPlayerRankInfo> CurrentRanks;
-    int32 CurrentRank = 1;
-    for (ACRPlayerState* CRPS : AllPlayerStates)
-    {
-        FPlayerRankInfo RankInfo;
-        RankInfo.PlayerName = CRPS->GetPlayerName();
-        RankInfo.Rank = CurrentRank++;
-        RankInfo.Kills = CRPS->Kills;
-        RankInfo.bIsAlive = CRPS->bIsAlive;
-        CurrentRanks.Add(RankInfo);
-    }
-
-    CRGameState->PlayerRanks = CurrentRanks;
-    CRGameState->NumPlayers = GameState->PlayerArray.Num(); // Update total players
+	CRGameState->PlayerRanks = CurrentRanks;
+	CRGameState->NumPlayers = GameState->PlayerArray.Num();
 }

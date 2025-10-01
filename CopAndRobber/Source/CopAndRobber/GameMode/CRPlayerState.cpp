@@ -29,12 +29,12 @@ UAbilitySystemComponent* ACRPlayerState::GetAbilitySystemComponent() const
 void ACRPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
+
 	FDoRepLifetimeParams SharedParams;
-	
+
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, MyTeamID, SharedParams);
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, bIsReady, SharedParams);
-	
+
 	DOREPLIFETIME(ThisClass, Kills);
 	DOREPLIFETIME(ThisClass, bIsAlive);
 	DOREPLIFETIME(ACRPlayerState, Nickname);
@@ -54,20 +54,29 @@ FGenericTeamId ACRPlayerState::GetGenericTeamId() const
 
 FPlayerRankInfo ACRPlayerState::FindPlayerRankInfo()
 {
-	ACRGameState* GS  = Cast<ACRGameState>(GetWorld()->GetGameState());
-	FPlayerRankInfo* FoundRank = GS->PlayerRanks.FindByPredicate([&](const FPlayerRankInfo& Info)
-	{
-		return Info.PlayerName == GetPlayerName();
-	});
-	if (FoundRank)
-	{
-		return *FoundRank;
-	}
-	else
+
+
+	ACRGameState* GS = Cast<ACRGameState>(GetWorld()->GetGameState());
+	if (!GS)
 	{
 		return FPlayerRankInfo();
 	}
 
+	if (GS->PlayerRanks.Num() == 0)
+	{
+		return FPlayerRankInfo();
+	}
+
+	FPlayerRankInfo* FoundRank = GS->PlayerRanks.FindByPredicate([&](const FPlayerRankInfo& Info)
+	{
+		return Info.PlayerName == GetPlayerName();
+	});
+
+	if (FoundRank)
+	{
+		return *FoundRank;
+	}
+	return FPlayerRankInfo();
 }
 
 void ACRPlayerState::OnRep_bIsReady()

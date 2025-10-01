@@ -118,29 +118,26 @@ void ACRPlayerController::ShowBattleHUD()
 	}
 }
 
-void ACRPlayerController::ShowResultHUD()
+void ACRPlayerController::ShowResultHUD(const FPlayerRankInfo& RankInfo, int32 TotalPlayers)
 {
-	ACRPlayerState* PS = GetPlayerState<ACRPlayerState>();
-	if (PS)
+	if (ResultWidgetClass && IsLocalController())
 	{
-		FPlayerRankInfo RankInfo = PS->FindPlayerRankInfo();
-		int32 TotalNum = Cast<ACRGameState>(GetWorld()->GetGameState())->NumPlayers;
-		if (ResultWidgetClass && IsLocalController())
+		ResultWidgetInstance = CreateWidget<UCRPlayerResultWidget>(this, ResultWidgetClass);
+		if (ResultWidgetInstance)
 		{
-			ResultWidgetInstance = CreateWidget<UCRPlayerResultWidget>(this, ResultWidgetClass);
-			if (ResultWidgetInstance)
-			{
-				ResultWidgetInstance->AddToViewport();
-				ResultWidgetInstance->SetRankInfo(RankInfo,TotalNum);	
-			}
-		}	
-	}
+			ResultWidgetInstance->AddToViewport();
+			ResultWidgetInstance->SetRankInfo(RankInfo, TotalPlayers);
+
+			SetInputMode(FInputModeUIOnly());
+			SetShowMouseCursor(true);
+		}
 	
+	}
 }
 
-void ACRPlayerController::Client_ShowResultHUD_Implementation()
+void ACRPlayerController::Client_ShowResultHUD_Implementation(FPlayerRankInfo RankInfo, int32 TotalPlayers)
 {
-	ShowResultHUD();
+	ShowResultHUD(RankInfo, TotalPlayers);
 }
 
 void ACRPlayerController::BindingBattleHUD()

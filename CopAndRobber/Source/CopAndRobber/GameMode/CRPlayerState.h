@@ -45,7 +45,7 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player Stats")
 	bool bIsAlive = true; // 기본적으로 살아있는 상태
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player Stats")
+	UPROPERTY(BlueprintReadOnly, Category = "Player Stats")
 	int32 DeathOrder = -1;
 
 	void SetDeathOrder(int32 NewDeathOrder) { if(HasAuthority()) DeathOrder = NewDeathOrder; }

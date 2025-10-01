@@ -155,29 +155,31 @@ void ACRPlayerCharacter::OnEffectAdded(UAbilitySystemComponent* ASC, const FGame
 	}
 }
 
-void ACRPlayerCharacter::HandleDeath(AActor* DeadActor, AActor* InstigatorActor) // 서버에서만 해야하는 death  
+void ACRPlayerCharacter::HandleDeath(AActor* DeadActor, AActor* InstigatorActor) // 서버에서만 해야하는 death
 {
+	if (!HasAuthority()) return;
+
+	// 1. 먼저 킬러의 킬 수를 증가시킴
+	if (InstigatorActor && InstigatorActor != this)
+	{
+		ACRPlayerCharacter* KillerChar = Cast<ACRPlayerCharacter>(InstigatorActor);
+		if (KillerChar)
+		{
+			if (ACRPlayerState* KillerPS = KillerChar->GetPlayerState<ACRPlayerState>())
+			{
+				KillerPS->AddKill();
+				UE_LOG(LogTemp, Warning, TEXT("[HandleDeath] %s killed %s. Killer's kills: %d"),
+					*KillerPS->GetPlayerName(), *GetPlayerState<ACRPlayerState>()->GetPlayerName(), KillerPS->Kills);
+			}
+		}
+	}
+
+	// 2. 그 다음 GameMode에 사망 알림 (순위 계산 포함)
 	ACRGameMode* GameMode = GetWorld()->GetAuthGameMode<ACRGameMode>();
 	if (GameMode)
 	{
 		GameMode->PlayerDied(GetPlayerState<ACRPlayerState>());
 	}
-
-	if (!InstigatorActor || InstigatorActor == this) return;
-
-	if (!HasAuthority()) return;
-
-	ACRPlayerCharacter* KillerChar = nullptr;
-	KillerChar = Cast<ACRPlayerCharacter>(InstigatorActor);
-
-	if (KillerChar)
-	{
-		if (ACRPlayerState* KillerPS = KillerChar->GetPlayerState<ACRPlayerState>())
-		{
-			KillerPS->AddKill();
-		}
-	}
-
 }
 
 
@@ -392,7 +394,7 @@ void ACRPlayerCharacter::RecoverStun()
 		PC->SetIgnoreMoveInput(false);
 	}
 }
-void ACRPlayerCharacter::OnDeath() //클라 
+void ACRPlayerCharacter::OnDeath() //클라
 {
 	Super::OnDeath();
 
@@ -402,7 +404,8 @@ void ACRPlayerCharacter::OnDeath() //클라
 		if (PC)
 		{
 			PC->SetIgnoreMoveInput(true);
-			PC->ShowResultHUD();
+			// ShowResultHUD()는 서버에서 Client_ShowResultHUD() RPC로 호출됨
+			// 이렇게 하면 PlayerRanks 리플리케이션 완료 후 UI가 표시되어 킬 수가 정확히 표시됨
 		}
 	}
 

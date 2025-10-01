@@ -16,6 +16,7 @@ class UUserWidget;
  * 
  */
 class UCRPlayerInputConfig;
+struct FPlayerRankInfo;
 
 UCLASS()
 class COPANDROBBER_API ACRPlayerController : public APlayerController
@@ -54,10 +55,10 @@ public:
 	void UpdateBuffUI(const FGameplayTag& Tag, int Count);
 	void RemoveBuffUI(const FGameplayTag& Tag);
 	void ShowBattleHUD();
-	void ShowResultHUD();
-
+	
+	void ShowResultHUD(const FPlayerRankInfo& RankInfo, int32 TotalPlayers);
 	UFUNCTION(Client, Reliable)
-	void Client_ShowResultHUD();
+	void Client_ShowResultHUD(FPlayerRankInfo RankInfo, int32 TotalPlayers);
 	
 	UFUNCTION(Server, Reliable)
 	void Server_ToggleReady();

@@ -68,10 +68,6 @@ void UCRAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 			AActor* InstigatorActor = InstigatorASC ? InstigatorASC->GetAvatarActor() : nullptr;
 			AActor* DeadActor = GetOwningAbilitySystemComponent()->GetAvatarActor();
 
-			UE_LOG(LogTemp, Warning, TEXT("[Death] %s killed by %s"), 
-				*GetNameSafe(DeadActor), 
-				*GetNameSafe(InstigatorActor));
-
 			OnDeath.Broadcast(DeadActor, InstigatorActor);
 		}
 	}
