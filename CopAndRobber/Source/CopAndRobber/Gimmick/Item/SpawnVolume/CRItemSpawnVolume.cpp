@@ -2,6 +2,7 @@
 
 #include "CRItemSpawnVolume.h"
 
+#include "NavigationSystem.h"
 #include "Components/BoxComponent.h"
 #include "Gimmick/Item/Base/CRItemBase.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -94,9 +95,26 @@ ACRItemBase* ACRItemSpawnVolume::SpawnItem()
 	const FVector Extent = Box->GetScaledBoxExtent();
 	const FVector RandLocal = UKismetMathLibrary::RandomPointInBoundingBox(FVector::ZeroVector, Extent);
 	const FVector XY = Center + FVector(RandLocal.X, RandLocal.Y, 0.f);
-	
+
+	FVector NavXY = XY;
+	if (UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld()))
+	{
+		const ANavigationData* NavData = NavSys->GetDefaultNavDataInstance(FNavigationSystem::DontCreate);
+		const FVector QueryExtent(100.f, 100.f, TraceUp + TraceDown);
+		
+		FNavLocation NavLoc;
+		if (NavData && NavSys->ProjectPointToNavigation(XY, NavLoc, QueryExtent, NavData))
+		{
+			NavXY = NavLoc.Location;
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
 	FHitResult Hit;
-	if (!FindGroundedLocation(XY, Hit)) return nullptr;
+	if (!FindGroundedLocation(NavXY, Hit)) return nullptr;
 
 	const float HalfHeight = GetItemHalfHeight(ItemClass);
 	const float SmallLift = 2.f;
