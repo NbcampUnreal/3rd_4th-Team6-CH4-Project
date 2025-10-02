@@ -50,6 +50,6 @@ void ACRLobbyGameModeBase::CheckAllPlayersReady()
 	if (ReadyCount >= MinPlayersToStart && ReadyCount == LGS->PlayerArray.Num())
 	{
 		UE_LOG(LogTemp, Log, TEXT("All players ready! Moving to MainLevel..."));
-		GetWorld()->ServerTravel(TEXT("/Game/Map/MainLevel?listen"));
+		GetWorld()->ServerTravel(TEXT("/Game/Map/MainLevel"));
 	}
 }

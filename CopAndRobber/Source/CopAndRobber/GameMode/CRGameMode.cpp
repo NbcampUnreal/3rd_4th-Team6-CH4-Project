@@ -245,7 +245,7 @@ void ACRGameMode::EndGame()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[EndGame] Traveling to Title Level"));
 			// 게임이 끝나고 로비 화면으로 돌아가는 로직입니다. 로비 부분을 넣어주면 됩니다
-			World->ServerTravel("/Game/Map/TitleLevel?listen", true);
+			World->ServerTravel("/Game/Map/TestLobbyLevel", true);
 		}
 	}, 5.f, false);
 }
