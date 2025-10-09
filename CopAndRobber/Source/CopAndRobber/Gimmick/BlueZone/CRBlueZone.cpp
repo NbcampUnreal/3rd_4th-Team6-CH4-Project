@@ -73,9 +73,22 @@ void ACRBlueZone::BeginPlay()
 	
 	SafeZone->InitCapsuleSize(ZoneRadius, ZoneHalfHeight);
 	SyncMeshToCapsuleRadius();
-	
-	SafeZone->OnComponentBeginOverlap.AddDynamic(this, &ACRBlueZone::OnZoneBeginOverlap);
-	SafeZone->OnComponentEndOverlap.AddDynamic(this, &ACRBlueZone::OnZoneEndOverlap);
+
+	if (HasAuthority())
+	{
+		SafeZone->OnComponentBeginOverlap.AddDynamic(this, &ACRBlueZone::OnZoneBeginOverlap);
+		SafeZone->OnComponentEndOverlap.AddDynamic(this, &ACRBlueZone::OnZoneEndOverlap);
+
+		StartRadius = SafeZone->GetUnscaledCapsuleRadius();
+
+		GetWorld()->GetTimerManager().SetTimer(
+			ShrinkTimer,
+			this,
+			&ACRBlueZone::StartShrink,
+			ShrinkDelay,
+			false
+		);
+	}
 
 	TArray<AActor*> OverlappingActors;
 	SafeZone->GetOverlappingActors(OverlappingActors, APawn::StaticClass());
@@ -86,35 +99,21 @@ void ACRBlueZone::BeginPlay()
 			Comp->ServerStopCountdown();
 		}
 	}
-
-	StartRadius = SafeZone->GetUnscaledCapsuleRadius();
-
-	GetWorld()->GetTimerManager().SetTimer(
-		ShrinkTimer,
-		this,
-		&ACRBlueZone::StartShrink,
-		ShrinkDelay,
-		false
-	);
 }
 
 void ACRBlueZone::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if (!HasAuthority() || !bIsShrinking) return;
+	ElapsedTime += DeltaSeconds;
+	float Alpha = FMath::Clamp(ElapsedTime / ShrinkDuration, 0.f, 1.f);
+	float NewRadius = FMath::Lerp(StartRadius, TargetRadius, Alpha);
+	SetZoneRadius(NewRadius);
 	
-	if (bIsShrinking)
+	if (Alpha >= 1.f)
 	{
-		ElapsedTime += DeltaSeconds;
-		float Alpha = FMath::Clamp(ElapsedTime / ShrinkDuration, 0.f, 1.f);
-
-		float NewRadius = FMath::Lerp(StartRadius, TargetRadius, Alpha);
-
-		SetZoneRadius(NewRadius);
-		
-		if (Alpha >= 1.f)
-		{
-			bIsShrinking = false;
-		}
+		bIsShrinking = false;
 	}
 }
 
