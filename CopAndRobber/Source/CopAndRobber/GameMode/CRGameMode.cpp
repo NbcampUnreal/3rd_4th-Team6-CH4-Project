@@ -2,6 +2,7 @@
 #include "GameMode/CRGameState.h"
 #include "Gimmick/BlueZone/CRZoneCountdownComponent.h"
 #include "GameMode/CRPlayerState.h"
+#include "GameMode/CRGameInstance.h"
 #include "NavigationSystem.h"
 #include "Character/Player/CRPlayerCharacter.h"
 #include "Controller/CRPlayerController.h"
@@ -13,27 +14,39 @@ ACRGameMode::ACRGameMode()
 {
 	GameStateClass = ACRGameState::StaticClass();
 	PlayerStateClass = ACRPlayerState::StaticClass();
-	MinPlayersToStart = 2;
 }
 
 void ACRGameMode::StartPlay()
 {
 	Super::StartPlay();
+
+	CRGameState = GetGameState<ACRGameState>();
+	if (CRGameState)
+	{
+		CRGameState->GamePhase = EGamePhase::Waiting;
+		CRGameState->NumPlayers = 0;
+	}
+
+
+	UCRGameInstance* GameInstance = Cast<UCRGameInstance>(GetGameInstance());
+	if (GameInstance)
+	{
+		RequiredPlayers = GameInstance->GetRequiredPlayers();
+	}
+}
+
+void ACRGameMode::BeginGame() // player들이 다 접속했을때?
+{
+	DeadPlayerCount = 0;
+	
 	CRGameState = GetGameState<ACRGameState>();
 	CRGameState->GamePhase = EGamePhase::GameInProgress;
-
-	BeginGame();
-
+	
 	// 점수판 계산 세팅
     CalculateAndSetRanks();
 
 	// 점수판 업데이트 주기 타이머
     GetWorldTimerManager().SetTimer(RankUpdateTimerHandle, this, &ACRGameMode::CalculateAndSetRanks, RankUpdateInterval, true);
-}
-
-void ACRGameMode::BeginGame()
-{
-	DeadPlayerCount = 0;
 
 	// GameState에 있는 컴포넌트를 통해 자기장 카운트다운 시작
 	if (CRGameState->ZoneCountdownComponent)
@@ -72,14 +85,26 @@ void ACRGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	if (NewPlayer)
-	{
-		FString PlayerName = NewPlayer->GetPlayerState<APlayerState>()->GetPlayerName();
-	}
-	
-	if (CRGameState)
+	ACRPlayerState* PlayerState = NewPlayer->GetPlayerState<ACRPlayerState>();
+	if (CRGameState && CRGameState->GamePhase == EGamePhase::Waiting)
 	{
 		CRGameState->NumPlayers++;
+		
+		if (CRGameState->NumPlayers >= RequiredPlayers)
+		{
+			BeginGame();
+			
+			for (APlayerState* PS : GameState->PlayerArray)
+			{
+				if (APlayerController* PC = Cast<APlayerController>(PS->GetOwner()))
+				{
+					if (!PC->GetPawn())  // 아직 스폰되지 않은 플레이어만
+					{
+						RestartPlayer(PC);
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -311,3 +336,34 @@ void ACRGameMode::CalculateAndSetRanks()
 	CRGameState->PlayerRanks = CurrentRanks;
 	CRGameState->NumPlayers = GameState->PlayerArray.Num();
 }
+
+void ACRGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	if (!CRGameState)
+	{
+		return;
+	}
+
+	// 게임 진행 중이거나 종료되었으면 로비로 
+	if (CRGameState->GamePhase == EGamePhase::GameInProgress ||
+		CRGameState->GamePhase == EGamePhase::GameFinished)
+	{
+		if (ACRPlayerController* PC = Cast<ACRPlayerController>(NewPlayer))
+		{
+			PC->ClientTravel("/Game/Map/TestLobbyLevel", ETravelType::TRAVEL_Relative);
+		}
+		return;
+	}
+	
+	if (CRGameState->GamePhase == EGamePhase::Waiting)
+	{
+	
+		if (CRGameState->NumPlayers < RequiredPlayers)
+		{
+			return;  // 스폰하지 않음
+		}
+	}
+	
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+}
+

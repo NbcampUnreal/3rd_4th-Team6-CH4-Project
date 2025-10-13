@@ -1,6 +1,7 @@
 #include "GameMode/CRLobbyGameModeBase.h"
 #include "GameMode/CRPlayerState.h"
 #include "GameMode/CRLobbyGameStateBase.h" // ✅ LobbyGameStateBase 포함
+#include "GameMode/CRGameInstance.h"
 #include "GameFramework/GameStateBase.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -46,10 +47,18 @@ void ACRLobbyGameModeBase::CheckAllPlayersReady()
 	// GameState에 집계 값 기록 (UI에서 바로 표시 가능)
 	LGS->CurrentPlayerCount = LGS->PlayerArray.Num();
 	LGS->ReadyPlayerCount   = ReadyCount;
+
 	// 조건 만족 → MainLevel 이동
 	if (ReadyCount >= MinPlayersToStart && ReadyCount == LGS->PlayerArray.Num())
 	{
-		UE_LOG(LogTemp, Log, TEXT("All players ready! Moving to MainLevel..."));
+		UCRGameInstance* GameInstance = Cast<UCRGameInstance>(GetGameInstance());
+		if (GameInstance)
+		{
+			int32 TotalPlayers = LGS->PlayerArray.Num();
+			GameInstance->SetRequiredPlayers(TotalPlayers);
+			UE_LOG(LogTemp, Log, TEXT("All %d players ready! Starting game with %d players..."), TotalPlayers, TotalPlayers);
+		}
+
 		GetWorld()->ServerTravel(TEXT("/Game/Map/MainLevel"));
 	}
 }

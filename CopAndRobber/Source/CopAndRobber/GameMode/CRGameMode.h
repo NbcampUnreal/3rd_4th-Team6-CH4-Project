@@ -22,14 +22,14 @@ protected:
 	virtual void StartPlay() override;
 
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "GameMode")
-	int32 MinPlayersToStart;
-
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	TSubclassOf<class ACRAISpawner> AISpawnerClass;
 
 	UPROPERTY()
 	ACRGameState* CRGameState;
+
+	// 로비에서 설정한 게임 시작에 필요한 플레이어 수 (GameInstance에서 가져옴)
+	int32 RequiredPlayers = 4;
 	
 	void BeginGame();
 	void EndGame();
@@ -44,4 +44,6 @@ private:
 
 	UPROPERTY()
 	int32 DeadPlayerCount = 0;
+
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 };
