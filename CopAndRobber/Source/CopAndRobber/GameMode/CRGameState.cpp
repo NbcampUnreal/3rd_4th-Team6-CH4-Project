@@ -28,3 +28,8 @@ void ACRGameState::OnRep_PlayerRanks()
 
 	// ��������Ʈ���� �� �̺�Ʈ�� �����Ͽ� UI�� ������Ʈ�ϴ� ������ �߰��ؾ� �մϴ�.
 }
+
+void ACRGameState::OnRep_NumPlayers()
+{
+	OnNumPlayersChanged.Broadcast(NumPlayers);
+}

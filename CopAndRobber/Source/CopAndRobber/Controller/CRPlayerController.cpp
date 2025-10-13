@@ -114,6 +114,8 @@ void ACRPlayerController::ShowBattleHUD()
 		{
 			BattleWidgetInstance->AddToViewport();
 			BindingBattleHUD();
+			ACRGameState* GS = Cast<ACRGameState>(GetWorld()->GetGameState());
+			
 		}
 	}
 }
@@ -165,6 +167,16 @@ void ACRPlayerController::BindingBattleHUD()
 				BattleWidgetInstance,
 				&UCRBattleHUDWidget::SetTimerRemaining
 			);
+			GS->OnNumPlayersChanged.RemoveDynamic(
+				BattleWidgetInstance,
+				&UCRBattleHUDWidget::UpdateAliveCountTextBlock
+				);
+
+			GS->OnNumPlayersChanged.AddDynamic(
+				BattleWidgetInstance,
+				&UCRBattleHUDWidget::UpdateAliveCountTextBlock
+				);
+			
 		}
 	}
 
@@ -173,6 +185,7 @@ void ACRPlayerController::BindingBattleHUD()
 	{
 		Server_SetNickname(PendingNickname);
 	}
+	
 }
 
 void ACRPlayerController::JoinServer(const FString& Address, const FString& Nickname)

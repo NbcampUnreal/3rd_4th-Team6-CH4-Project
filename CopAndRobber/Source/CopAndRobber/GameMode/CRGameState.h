@@ -14,7 +14,7 @@ enum class EGamePhase : uint8
 	GameInProgress,		// 게임 진행중
 	GameFinished		// 게임 종료
 };
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNumPlayersChanged, int32, NewNumPlayers);
 /**
  * 
  */
@@ -29,7 +29,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCRZoneCountdownComponent* ZoneCountdownComponent;
 	
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
+	UPROPERTY(ReplicatedUsing= OnRep_NumPlayers, BlueprintReadOnly, Category = "GameState")
 	int32 NumPlayers;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
@@ -38,6 +38,9 @@ public:
 	UPROPERTY(ReplicatedUsing=OnRep_PlayerRanks, BlueprintReadOnly, Category = "GameState")
 	TArray<FPlayerRankInfo> PlayerRanks;
 
+	UPROPERTY(BlueprintAssignable, Category = "GameState|Events")
+	FOnNumPlayersChanged OnNumPlayersChanged;
+
 protected:
 	// 변수 복제를 위해 필수적으로 오버라이드해야 하는 함수
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -45,4 +48,7 @@ protected:
 	// OnRep_PlayerRanks 함수 선언
 	UFUNCTION()
 	void OnRep_PlayerRanks();
+
+	UFUNCTION()
+	void OnRep_NumPlayers();
 };
