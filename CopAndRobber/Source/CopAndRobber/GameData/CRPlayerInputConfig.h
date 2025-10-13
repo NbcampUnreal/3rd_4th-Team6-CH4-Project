@@ -37,6 +37,4 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = InputMappingContext)
 	TObjectPtr<UInputMappingContext> DefaultMappingContext;
-
-	
 };

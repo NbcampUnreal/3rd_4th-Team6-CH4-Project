@@ -58,14 +58,14 @@ void ACRPlayerController::BeginPlay()
 	FString MapName = GetWorld()->GetMapName();
 
 	// 로비 제거 처리
-	if (!MapName.Contains(TEXT("TestLobbyLevel")) && LobbyWidgetInstance)
+	if (!MapName.Contains(TEXT("LobbyLevel")) && LobbyWidgetInstance)
 	{
 		LobbyWidgetInstance->RemoveFromParent();
 		LobbyWidgetInstance = nullptr;
 	}
 
 	// 타이틀 UI
-	if (MapName.Contains(TEXT("TestTitleLevel")))
+	if (MapName.Contains(TEXT("TitleLevel")))
 	{
 		if (TitleWidgetClass)
 		{
@@ -84,7 +84,7 @@ void ACRPlayerController::BeginPlay()
 		}
 	}
 	// 로비 UI
-	else if (MapName.Contains(TEXT("TestLobbyLevel")))
+	else if (MapName.Contains(TEXT("LobbyLevel")))
 	{
 		if (LobbyWidgetClass)
 		{
@@ -255,12 +255,12 @@ void ACRPlayerController::HandleEscapePressed()
 
 	UE_LOG(LogTemp, Warning, TEXT("SetupInputComponent called")); // 로그 찍어보기
 	// ✅ 로비에서만 ESC 허용
-	if (!MapName.Contains(TEXT("TestLobbyLevel")))
+	if (!MapName.Contains(TEXT("LobbyLevel")))
 	{
 		return;
 	}
 
-	if (!GetWorld()->GetMapName().Contains(TEXT("TestLobbyLevel")))
+	if (!GetWorld()->GetMapName().Contains(TEXT("LobbyLevel")))
 		return;
 	
 	if (EscapeMenuInstance && EscapeMenuInstance->IsInViewport())
