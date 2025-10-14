@@ -24,7 +24,6 @@ void ACRGameMode::StartPlay()
 	if (CRGameState)
 	{
 		CRGameState->GamePhase = EGamePhase::Waiting;
-		CRGameState->NumPlayers = 0;
 	}
 
 
@@ -41,6 +40,7 @@ void ACRGameMode::BeginGame() // player들이 다 접속했을때?
 	
 	CRGameState = GetGameState<ACRGameState>();
 	CRGameState->GamePhase = EGamePhase::GameInProgress;
+	CRGameState->NumPlayers = GameState->PlayerArray.Num();
 	
 	// 점수판 계산 세팅
     CalculateAndSetRanks();
@@ -88,9 +88,8 @@ void ACRGameMode::PostLogin(APlayerController* NewPlayer)
 	ACRPlayerState* PlayerState = NewPlayer->GetPlayerState<ACRPlayerState>();
 	if (CRGameState && CRGameState->GamePhase == EGamePhase::Waiting)
 	{
-		CRGameState->NumPlayers++;
-		
-		if (CRGameState->NumPlayers >= RequiredPlayers)
+		// Check the total number of players in the PlayerArray
+		if (GameState->PlayerArray.Num() >= RequiredPlayers)
 		{
 			BeginGame();
 			
@@ -210,9 +209,11 @@ void ACRGameMode::PlayerDied(ACRPlayerState* Player)
 		return;
 	}
 
-	if (Player)
+		if (Player)
 	{
-        Player->SetIsAlive(false);
+			CRGameState->NumPlayers--;
+			Player->SetIsAlive(false);
+
         DeadPlayerCount++;
         Player->SetDeathOrder(DeadPlayerCount);
         CalculateAndSetRanks();
@@ -334,7 +335,6 @@ void ACRGameMode::CalculateAndSetRanks()
 	}
 
 	CRGameState->PlayerRanks = CurrentRanks;
-	CRGameState->NumPlayers = GameState->PlayerArray.Num();
 }
 
 void ACRGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
