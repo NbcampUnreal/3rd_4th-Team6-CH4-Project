@@ -47,12 +47,7 @@ void ACRGameMode::BeginGame() // player들이 다 접속했을때?
 
 	// 점수판 업데이트 주기 타이머
     GetWorldTimerManager().SetTimer(RankUpdateTimerHandle, this, &ACRGameMode::CalculateAndSetRanks, RankUpdateInterval, true);
-
-	// GameState에 있는 컴포넌트를 통해 자기장 카운트다운 시작
-	if (CRGameState->ZoneCountdownComponent)
-	{
-		CRGameState->ZoneCountdownComponent->ServerStartCountdown();
-	}
+	
 
 	UWorld* World = GetWorld();
 	if (!World)
@@ -209,14 +204,14 @@ void ACRGameMode::PlayerDied(ACRPlayerState* Player)
 		return;
 	}
 
-		if (Player)
+	if (Player)
 	{
-			CRGameState->NumPlayers--;
-			Player->SetIsAlive(false);
+		CRGameState->NumPlayers--;
+		Player->SetIsAlive(false);
 
-        DeadPlayerCount++;
-        Player->SetDeathOrder(DeadPlayerCount);
-        CalculateAndSetRanks();
+		DeadPlayerCount++;
+		Player->SetDeathOrder(DeadPlayerCount);
+		CalculateAndSetRanks();
 	}
 
 	int32 TotalPlayerCount = GameState->PlayerArray.Num();
@@ -226,20 +221,48 @@ void ACRGameMode::PlayerDied(ACRPlayerState* Player)
 	if (AlivePlayerCount <= 1)
 	{
 		EndGame();
+		return;
+	}
+	
+	if (Player)
+	{
+		ACRPlayerController* PC = Cast<ACRPlayerController>(Player->GetPlayerController());
+		if (PC)
+		{
+			// 현재 순위 정보 찾기
+			FPlayerRankInfo* FoundRank = CRGameState->PlayerRanks.FindByPredicate([&](const FPlayerRankInfo& Info)
+			{
+				return Info.PlayerName == Player->GetPlayerName();
+			});
+            
+			if (FoundRank)
+			{
+				// 죽은 플레이어에게 현재 순위와 관전 UI 표시
+				PC->Client_ShowResultHUD(*FoundRank, TotalPlayerCount);
+			}
+		}
+	}
+}
+
+void ACRGameMode::AddPlayerKill(ACRPlayerState* Killer)
+{
+	if (!HasAuthority()) return;
+    
+	if (Killer)
+	{
+		Killer->AddKill();
+		UE_LOG(LogTemp, Warning, TEXT("[AddPlayerKill] %s kills: %d"), 
+			   *Killer->GetPlayerName(), Killer->Kills);
 	}
 }
 
 void ACRGameMode::EndGame()
 {
-
 	CRGameState->GamePhase = EGamePhase::GameFinished;
-
-    GetWorldTimerManager().ClearTimer(RankUpdateTimerHandle);
-	
-    CalculateAndSetRanks();
-	
-	// 서버에서 계산한 정확한 순위 정보를 RPC로 직접 전달
-	int32 ShowCount = 0;
+	GetWorldTimerManager().ClearTimer(RankUpdateTimerHandle);
+	CalculateAndSetRanks();
+    
+	// 🎯 모든 플레이어에게 결과 UI 표시
 	for (APlayerState* PS : GameState->PlayerArray)
 	{
 		if (ACRPlayerState* CRPS = Cast<ACRPlayerState>(PS))
@@ -253,13 +276,9 @@ void ACRGameMode::EndGame()
 				});
 				if (FoundRank)
 				{
-					// 서버의 정확한 순위 정보를 RPC로 전달
-					PC->Client_ShowResultHUD(*FoundRank, CRGameState->NumPlayers);
-					ShowCount++;
+					PC->Client_ShowResultHUD(*FoundRank, GameState->PlayerArray.Num());
 				}
-			
 			}
-			
 		}
 	}
 
@@ -299,7 +318,7 @@ void ACRGameMode::CalculateAndSetRanks()
 		// 1. 생존 여부로 정렬 (살아있는 사람이 먼저)
 		if (A.bIsAlive != B.bIsAlive)
 		{
-			return A.bIsAlive; // true가 먼저 옴
+			return A.bIsAlive; // true가 먼저 옴ㅊ
 		}
 
 		// 2. 둘 다 살아있다면, 킬 수로 정렬 (킬이 많은 사람이 먼저)
@@ -332,6 +351,9 @@ void ACRGameMode::CalculateAndSetRanks()
 		RankInfo.Kills = CRPS->Kills;
 		RankInfo.bIsAlive = CRPS->bIsAlive;
 		CurrentRanks.Add(RankInfo);
+		// 디버깅 로그 추가
+		UE_LOG(LogTemp, Error, TEXT("[CalculateRanks] %s: Kills=%d"), 
+			   *RankInfo.PlayerName, RankInfo.Kills);
 	}
 
 	CRGameState->PlayerRanks = CurrentRanks;

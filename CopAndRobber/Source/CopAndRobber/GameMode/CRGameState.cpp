@@ -1,13 +1,18 @@
 #include "GameMode/CRGameState.h"
 #include "Net/UnrealNetwork.h"
-#include "Gimmick/BlueZone/CRZoneCountdownComponent.h"
+#include "Gimmick/BlueZone/CRBlueZone.h"
+#include "Kismet/GameplayStatics.h"
 
 ACRGameState::ACRGameState()
 {
 	NumPlayers = 0;
 	GamePhase = EGamePhase::Waiting;
 
-	ZoneCountdownComponent = CreateDefaultSubobject<UCRZoneCountdownComponent>(TEXT("ZoneCountdownComponent"));
+	if (ACRBlueZone* BlueZone = Cast<ACRBlueZone>(UGameplayStatics::GetActorOfClass(this, ACRBlueZone::StaticClass())))
+	{
+		CachedShrinkDelay = BlueZone->ShrinkDelay;
+	}
+	
 }
 
 void ACRGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -31,5 +36,8 @@ void ACRGameState::OnRep_PlayerRanks()
 
 void ACRGameState::OnRep_NumPlayers()
 {
-	OnNumPlayersChanged.Broadcast(NumPlayers);
+	if (GamePhase != EGamePhase::Waiting)
+	{
+		OnNumPlayersChanged.Broadcast(NumPlayers);
+	}
 }

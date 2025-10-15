@@ -155,28 +155,40 @@ void ACRPlayerCharacter::OnEffectAdded(UAbilitySystemComponent* ASC, const FGame
 	}
 }
 
-void ACRPlayerCharacter::HandleDeath(AActor* DeadActor, AActor* InstigatorActor) // 서버에서만 해야하는 death
+void ACRPlayerCharacter::HandleDeath(AActor* DeadActor, AActor* InstigatorActor)
 {
 	if (!HasAuthority()) return;
 
-	// 1. 먼저 킬러의 킬 수를 증가시킴
+	ACRGameMode* GameMode = GetWorld()->GetAuthGameMode<ACRGameMode>();
+	if (!GameMode) return;
+
+	// 킬러가 있는 경우만 킬 수 증가
 	if (InstigatorActor && InstigatorActor != this)
 	{
-		ACRPlayerCharacter* KillerChar = Cast<ACRPlayerCharacter>(InstigatorActor);
-		if (KillerChar)
+		if (ACRPlayerCharacter* KillerChar = Cast<ACRPlayerCharacter>(InstigatorActor))
 		{
 			if (ACRPlayerState* KillerPS = KillerChar->GetPlayerState<ACRPlayerState>())
 			{
-				KillerPS->AddKill();
-				UE_LOG(LogTemp, Warning, TEXT("[HandleDeath] %s killed %s. Killer's kills: %d"),
-					*KillerPS->GetPlayerName(), *GetPlayerState<ACRPlayerState>()->GetPlayerName(), KillerPS->Kills);
+				UE_LOG(LogTemp, Warning, TEXT("[HandleDeath] %s killed by %s"), 
+					   *GetPlayerState<ACRPlayerState>()->GetPlayerName(), 
+					   *KillerPS->GetPlayerName());
+				GameMode->AddPlayerKill(KillerPS);
 			}
 		}
 	}
+	else
+	{
+		// 자연사 로그
+		UE_LOG(LogTemp, Warning, TEXT("[HandleDeath] %s died naturally (no killer)"), 
+			   *GetPlayerState<ACRPlayerState>()->GetPlayerName());
+	}
 
-
+	// 모든 죽음에 대해 PlayerDied 호출
+	if (ACRPlayerState* DeadPS = GetPlayerState<ACRPlayerState>())
+	{
+		GameMode->PlayerDied(DeadPS);
+	}
 }
-
 
 void ACRPlayerCharacter::OnGameplayEffectRemoved(const FActiveGameplayEffect& ActiveEffect)
 {
@@ -214,14 +226,6 @@ void ACRPlayerCharacter::ServerInteractDoor_Implementation(ACRDoor* Door)
 void ACRPlayerCharacter::OnDeathTagChanged(FGameplayTag Tag, int32 NewCount)
 {
 	Super::OnDeathTagChanged(Tag, NewCount);
-	if (NewCount != 0)
-	{
-		ACRGameMode* GameMode = GetWorld()->GetAuthGameMode<ACRGameMode>();
-		if (GameMode)
-		{
-			GameMode->PlayerDied(GetPlayerState<ACRPlayerState>());
-		}
-	}
 }
 
 void ACRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -407,14 +411,13 @@ void ACRPlayerCharacter::OnDeath()
 {
 	Super::OnDeath();
 
+	
 	if (IsLocallyControlled())
 	{
 		ACRPlayerController* PC = Cast<ACRPlayerController>(GetController());
 		if (PC)
 		{
 			PC->SetIgnoreMoveInput(true);
-			// ShowResultHUD()는 서버에서 Client_ShowResultHUD() RPC로 호출됨
-			// 이렇게 하면 PlayerRanks 리플리케이션 완료 후 UI가 표시되어 킬 수가 정확히 표시됨
 		}
 	}
 

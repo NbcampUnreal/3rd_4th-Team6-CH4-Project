@@ -20,6 +20,7 @@
 #include "GameMode/CRGameMode.h"
 #include "GameMode/CRLobbyGameModeBase.h"
 #include "GameMode/CRPlayerState.h"
+#include "Gimmick/BlueZone/CRBlueZone.h"
 
 void ACRPlayerController::Client_SetupInput_Implementation(UCRPlayerInputConfig* InPlayerInputConfig)
 {
@@ -115,6 +116,11 @@ void ACRPlayerController::ShowBattleHUD()
 			BattleWidgetInstance->AddToViewport();
 			BindingBattleHUD();
 			ACRGameState* GS = Cast<ACRGameState>(GetWorld()->GetGameState());
+			if (GS)
+			{
+				BattleWidgetInstance->SetUpRemainingTextBlock(true, GS->CachedShrinkDelay);
+				
+			}
 			
 		}
 	}
@@ -122,18 +128,25 @@ void ACRPlayerController::ShowBattleHUD()
 
 void ACRPlayerController::ShowResultHUD(const FPlayerRankInfo& RankInfo, int32 TotalPlayers)
 {
-	if (ResultWidgetClass && IsLocalController())
+	if (!IsValid(ResultWidgetInstance))
 	{
-		ResultWidgetInstance = CreateWidget<UCRPlayerResultWidget>(this, ResultWidgetClass);
-		if (ResultWidgetInstance)
+		if (ResultWidgetClass && IsLocalController())
 		{
-			ResultWidgetInstance->AddToViewport();
-			ResultWidgetInstance->SetRankInfo(RankInfo, TotalPlayers);
+			ResultWidgetInstance = CreateWidget<UCRPlayerResultWidget>(this, ResultWidgetClass);
+			if (ResultWidgetInstance)
+			{
+				ResultWidgetInstance->AddToViewport();
+				ResultWidgetInstance->SetRankInfo(RankInfo, TotalPlayers);
 
-			SetInputMode(FInputModeUIOnly());
-			SetShowMouseCursor(true);
+				SetInputMode(FInputModeUIOnly());
+				SetShowMouseCursor(true);
+			}
+		
 		}
-	
+	}
+	else
+	{
+		ResultWidgetInstance->SetRankInfo(RankInfo, TotalPlayers);	
 	}
 }
 
@@ -148,30 +161,7 @@ void ACRPlayerController::BindingBattleHUD()
 	{
 		if (BattleWidgetInstance)
 		{
-			GS->ZoneCountdownComponent->OnZoneCountingChanged.RemoveDynamic(
-				BattleWidgetInstance,
-				&UCRBattleHUDWidget::SetUpRemainingTextBlock
-			);
-
-			GS->ZoneCountdownComponent->OnZoneTimeChanged.RemoveDynamic(
-				BattleWidgetInstance,
-				&UCRBattleHUDWidget::SetTimerRemaining
-			);
-
-			GS->ZoneCountdownComponent->OnZoneCountingChanged.AddDynamic(
-				BattleWidgetInstance,
-				&UCRBattleHUDWidget::SetUpRemainingTextBlock
-			);
-
-			GS->ZoneCountdownComponent->OnZoneTimeChanged.AddDynamic(
-				BattleWidgetInstance,
-				&UCRBattleHUDWidget::SetTimerRemaining
-			);
-			GS->OnNumPlayersChanged.RemoveDynamic(
-				BattleWidgetInstance,
-				&UCRBattleHUDWidget::UpdateAliveCountTextBlock
-				);
-
+			
 			GS->OnNumPlayersChanged.AddDynamic(
 				BattleWidgetInstance,
 				&UCRBattleHUDWidget::UpdateAliveCountTextBlock

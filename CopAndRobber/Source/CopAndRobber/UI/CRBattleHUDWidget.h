@@ -6,6 +6,7 @@
 #include "CRBattleHUDWidget.generated.h"
 
 
+class ACRBlueZone;
 struct FGameplayTag;
 class UCRItemBuffSlot;
 class UHorizontalBox;
@@ -20,19 +21,28 @@ class COPANDROBBER_API UCRBattleHUDWidget : public UUserWidget
 
 public:
 	UFUNCTION()
-	void SetUpRemainingTextBlock(bool bIsCounting);
+	void SetUpRemainingTextBlock(bool bIsCounting, float RemainingTime = 0.f);
 	UFUNCTION()
-	void SetTimerRemaining(int32 RemainingTime);
+	void SetTimerRemaining(float RemainingTime);
 	UFUNCTION()
 	void UpdateAliveCountTextBlock(int32 AliveCount);
 	
 	void UpdateBuffSlot(const FGameplayTag& Tag , int Count = 0);
 	void RemoveBuffSlot(const FGameplayTag& Tag);
-
 	
-private:
+protected:
+	FTimerHandle CountdownTimerHandle;
+	float CountdownEndTime;
 
-	int32 CachedRemainingTime;
+private:
+	UFUNCTION()
+	void UpdateCountdownTimer();
+    
+	UFUNCTION()
+	void OnCountdownFinished();
+
+private:
+	
 	// 자기장  타이머
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class USizeBox> TimerSizeBox;
@@ -59,6 +69,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Buff")
 	FGameplayTagContainer BuffContainer;
+	
 	
 
 	

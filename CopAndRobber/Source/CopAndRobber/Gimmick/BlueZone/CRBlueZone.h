@@ -32,10 +32,10 @@ public:
 	void OnRep_ZoneRadius();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	
-protected:
 	UPROPERTY(EditAnywhere, Category="Zone")
 	float ShrinkDelay = 10.f;
+	
+protected:
 
 	UPROPERTY(EditAnywhere, Category="Zone")
 	float ShrinkDuration = 10.f;

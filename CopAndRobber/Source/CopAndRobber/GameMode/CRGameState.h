@@ -5,6 +5,7 @@
 #include "GameData/CRPlayerRankInfo.h"
 #include "CRGameState.generated.h"
 
+class ACRBlueZone;
 class UCRZoneCountdownComponent;
 
 UENUM(BlueprintType)
@@ -26,8 +27,7 @@ class COPANDROBBER_API ACRGameState : public AGameState
 public:
 	ACRGameState();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UCRZoneCountdownComponent* ZoneCountdownComponent;
+	float CachedShrinkDelay;
 	
 	UPROPERTY(ReplicatedUsing= OnRep_NumPlayers, BlueprintReadOnly, Category = "GameState")
 	int32 NumPlayers;

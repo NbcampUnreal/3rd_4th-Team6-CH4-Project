@@ -14,7 +14,12 @@ class COPANDROBBER_API ACRGameMode : public AGameMode
 
 public:
 	ACRGameMode();
+
 	void PlayerDied(ACRPlayerState* Player);
+    
+	// 킬러의 킬 수만 증가시키는 함수
+	UFUNCTION()
+	void AddPlayerKill(ACRPlayerState* Killer);
 	
 protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
