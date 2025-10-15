@@ -25,7 +25,7 @@ private:
 	FGameplayTag EventTag;
 	UPROPERTY(EditAnywhere, Category= "Gameplay Ability")
 	TArray<FName> TargetSocketName;
-
+	
 	UPROPERTY(EditAnywhere, Category = "Gameplay Ability")
 	TEnumAsByte<ETeamAttitude::Type> TargetTeam = ETeamAttitude::Hostile;
 
