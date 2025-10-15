@@ -18,7 +18,7 @@ protected:
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
-    float AcceptanceRadius = 150.0f;
+    float AcceptanceRadius = 100.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
     float MaxMoveRadius = 1500.0f;
