@@ -174,12 +174,7 @@ void ACRPlayerCharacter::HandleDeath(AActor* DeadActor, AActor* InstigatorActor)
 		}
 	}
 
-	// 2. 그 다음 GameMode에 사망 알림 (순위 계산 포함)
-	ACRGameMode* GameMode = GetWorld()->GetAuthGameMode<ACRGameMode>();
-	if (GameMode)
-	{
-		GameMode->PlayerDied(GetPlayerState<ACRPlayerState>());
-	}
+
 }
 
 
@@ -215,6 +210,20 @@ void ACRPlayerCharacter::ServerInteractDoor_Implementation(ACRDoor* Door)
 }
 
 #pragma  region Input
+
+void ACRPlayerCharacter::OnDeathTagChanged(FGameplayTag Tag, int32 NewCount)
+{
+	Super::OnDeathTagChanged(Tag, NewCount);
+	if (NewCount != 0)
+	{
+		ACRGameMode* GameMode = GetWorld()->GetAuthGameMode<ACRGameMode>();
+		if (GameMode)
+		{
+			GameMode->PlayerDied(GetPlayerState<ACRPlayerState>());
+		}
+	}
+}
+
 void ACRPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -394,7 +403,7 @@ void ACRPlayerCharacter::RecoverStun()
 		PC->SetIgnoreMoveInput(false);
 	}
 }
-void ACRPlayerCharacter::OnDeath() //클라
+void ACRPlayerCharacter::OnDeath() 
 {
 	Super::OnDeath();
 

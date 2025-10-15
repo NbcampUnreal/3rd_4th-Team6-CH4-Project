@@ -33,7 +33,7 @@ protected:
 	virtual void BindingChangeDelegate();
 	void OnSpeedChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 	void OnStunTagChanged(FGameplayTag Tag, int32 NewCount);
-	void OnDeathTagChanged(FGameplayTag Tag, int32 NewCount);
+	virtual void OnDeathTagChanged(FGameplayTag Tag, int32 NewCount);
 
 	UPROPERTY(Transient)
 	TObjectPtr<UCRAbilitySystemComponent> AbilitySystemComponent;

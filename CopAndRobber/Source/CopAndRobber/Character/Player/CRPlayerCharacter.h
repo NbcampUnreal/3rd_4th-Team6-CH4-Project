@@ -33,6 +33,7 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerInteractDoor(ACRDoor* Door);
 protected:
+	virtual void OnDeathTagChanged(FGameplayTag Tag, int32 NewCount) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void PawnClientRestart() override;
 	virtual void PossessedBy(AController* NewController) override;
