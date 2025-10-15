@@ -92,12 +92,6 @@ void UCRBTTask_RandomMove::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
     
     UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
     
-    if (BBComp && BBComp->GetValueAsBool(ACRAIController::BBKey_bIsPlayerDetected))
-    {
-        AICon->StopMovement();
-        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-        return;
-    }
 
     UPathFollowingComponent* PFC = AICon->GetPathFollowingComponent();
     if (!PFC)
