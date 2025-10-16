@@ -137,8 +137,7 @@ Unreal Engine의 Gameplay Ability System과 네트워킹 시스템을 깊이 있
 | | |
 | **Developer 2** |박진권|
 | **Email 2** | wlsrnjs945@naver.com|
-| **GitHub 2** | [https://github.com/jin945] |
-
+| **GitHub 2** | [https://github.com/jin945]|
 | | |
 | **Developer 3** | <!-- 이름 또는 닉네임 --> |
 | **Email 3** | <!-- 이메일 주소 --> |
