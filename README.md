@@ -142,9 +142,9 @@ Unreal Engine의 Gameplay Ability System과 네트워킹 시스템을 깊이 있
 | **Email 3** | wjdjeong68@gmail.com |
 | **GitHub 3** | [https://github.com/dfdeer]|
 | | |
-| **Developer 4** | <!-- 이름 또는 닉네임 --> |
-| **Email 4** | <!-- 이메일 주소 --> |
-| **GitHub 4** | [https://github.com/<!-- 깃허브아이디 -->](https://github.com/<!-- 깃허브아이디 -->) |
+| **Developer 4** | 김형 |
+| **Email 4** | gudehs927@naver.com |
+| **GitHub 4** | [https://github.com/gudehs927]|
 | | |
 | **Developer 5** | <!-- 이름 또는 닉네임 --> |
 | **Email 5** | <!-- 이메일 주소 --> |
