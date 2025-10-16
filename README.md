@@ -1,14 +1,14 @@
 # 🎮 Cop And Robber
 <img width="1536" height="1024" alt="Image" src="https://github.com/user-attachments/assets/96ff86b4-0cf3-43f8-a0c9-bc52ac53436e" />
-> Unreal Engine 기반 **비대칭 서바이벌 액션 게임 (Asymmetric Survival Game)**  
-> Stage 내에서 플레이어와 AI들이 서로를 찾아 **최후의 1인**이 되기 위한 전투를 벌이는 게임입니다.
+> Unreal Engine 기반 **서바이벌 액션 게임**  
+> Stage 내에서 AI속에 숨은 플레이어 서로를 찾아 **최후의 1인**이 되기 위한 전투를 벌이는 게임입니다.
 
 ---
 
 ## 📘 프로젝트 개요 (Overview)
 <!-- 프로젝트 전반에 대한 간단한 설명 -->
 - **프로젝트명** : Cop And Robber  
-- **장르** : Asymmetric Survival / PvP / Action  
+- **장르** : Survival / PvP / Action  
 - **엔진** : Unreal Engine 5.5  
 - **플랫폼** : PC  
 - **개발 기간** : 2025.09 ~ 2025.10  
