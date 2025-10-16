@@ -110,7 +110,7 @@ flowchart TD
 ---
 
 ## 🎥 시연 영상 (Demo Video)
-🔗 [시연 영상 보러가기]([https://youtu.be/](https://www.youtube.com/watch?v=WWuovYMKJiY))
+🔗 [시연 영상 보러가기](https://www.youtube.com/watch?v=WWuovYMKJiY)
 
 <p align="center">
   <a href="https://youtu.be/TODO">
